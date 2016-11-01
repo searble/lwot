@@ -1,6 +1,6 @@
 {
     "name": "lwot",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Leave work on time!",
     "main": "app.js",
     "scripts": {
@@ -33,6 +33,10 @@
             "email": "slee@searble.net"
         }
     ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/searble/lwot"
+    },
     "dependencies": {
         "cli-color": "^1.1.0",
         "fs-extra": "^0.30.0",
