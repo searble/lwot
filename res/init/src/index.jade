@@ -1,0 +1,11 @@
+doctype html
+html(ng-app="app")
+    head
+        include components/jade/header
+        script(src="{$ROOT}/view/js/index.js")
+        link(rel="stylesheet", href="{$ROOT}/view/css/index.css")
+
+    body(ng-controller='ctrl')
+        h1 {{appInfo.name}}
+        hr
+        h3 {{appInfo.comment}}

@@ -1,0 +1,9 @@
+{
+    "name": "lwot-example",
+    "version": "0.0.0",
+    "private": true,
+    "authors": "authors",
+    "description": "my Project",
+    "platforms": [],
+    "compiler": []
+}

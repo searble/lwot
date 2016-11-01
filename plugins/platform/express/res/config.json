@@ -1,0 +1,38 @@
+{
+    "express": {
+        "port": 27017,
+        "languages": [
+            "en",
+            "ko",
+            "en_US",
+            "ja"
+        ],
+        "session": {
+            "secret": "sessionKey",
+            "resave": false,
+            "saveUninitialized": false
+        },
+        "redis": {
+            "host": "127.0.0.1",
+            "port": 6379
+        },
+        "mysql": {
+            "host": "127.0.0.1",
+            "port": "3306",
+            "user": "root",
+            "password": "",
+            "database": "ias"
+        },
+        "sendmail": {
+            "host": "smtp.host-server.com",
+            "user": "email@email.com",
+            "password": "password",
+            "from": "Service <email@email.com>",
+            "ssl": true
+        },
+        "encrypt": {
+            "key": "InTeGrAteD-aPpLiCaTiOn-SkElEtOn"
+        },
+        "dev": true
+    }
+}

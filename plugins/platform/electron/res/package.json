@@ -1,0 +1,12 @@
+{
+  "name": "IAS",
+  "version": "0.0.0",
+  "private": true,
+  "authors": "ple, proin",
+  "description": "Integrated Application Skeleton",
+  "main": "electron.js",
+  "dependencies": {},
+  "devDependencies": {
+  },
+  "asar": true
+}
