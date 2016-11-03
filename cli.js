@@ -6,11 +6,6 @@ var fsext = require('fs-extra');
 var clc = require("cli-color");
 var app = require('./app');
 
-const HOMEDIR = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-const APP_DIR = path.resolve(HOMEDIR, '.lwot');
-if (!fs.existsSync(APP_DIR))
-    fsext.mkdirsSync(APP_DIR);
-
 var processPath = process.cwd();
 var commands = process.argv.splice(2);
 

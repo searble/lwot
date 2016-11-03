@@ -9,6 +9,7 @@ module.exports = (()=> {
     const utility = require('./libs/utility');
 
     const PROJECT_ROOT = path.resolve('.');
+    const LWOT_FILE = path.resolve(PROJECT_ROOT, 'lwot.json');
     const SOURCE_ROOT = path.resolve(PROJECT_ROOT, 'src');
     const CONTROLLER_ROOT = path.resolve(PROJECT_ROOT, 'controller');
     const PLUGIN_ROOT = path.resolve(PROJECT_ROOT, 'plugins');
@@ -43,7 +44,11 @@ module.exports = (()=> {
                 let platformPath = path.resolve(PLUGIN_DIR, files[i]);
                 if (fs.lstatSync(platformPath).isDirectory() === false) continue;
                 let MODULE_NAME = files[i];
-                lib[PLUGIN_NAME][MODULE_NAME] = require(platformPath);
+                try {
+                    lib[PLUGIN_NAME][MODULE_NAME] = require(platformPath);
+                } catch (e) {
+                }
+
             }
         }
         return lib;
@@ -78,9 +83,54 @@ module.exports = (()=> {
     });
 
     // [lib] inner project: install, bower, build, watch, platform, run, deploy
-
     lib.install = (cmds)=> new Promise((callback)=> {
-        if (!cmds || cmds.length === 0) return callback('help');
+        let lwotConfig = JSON.parse(fs.readFileSync(LWOT_FILE, 'utf-8'));
+
+        if (!cmds || cmds.length === 0) {
+            if (!lwotConfig.dependencies) {
+                callback('help');
+                return;
+            }
+
+            let installList = [];
+            for (let pluginName in lwotConfig.dependencies) {
+                for (let plugin in lwotConfig.dependencies[pluginName]) {
+                    let pluginInfo = lwotConfig.dependencies[pluginName][plugin];
+                    installList.push({name: plugin, plugin: pluginName, version: pluginInfo.version, uri: pluginInfo.uri});
+                }
+            }
+
+            let idx = 0;
+            let autoInstall = ()=> {
+                let pinfo = installList[idx++];
+                if (!pinfo) {
+                    callback();
+                    return;
+                }
+
+                let then = (status)=> {
+                    if (status.error)
+                        messageBroker('red', 'install', `${pinfo.plugin} "${pinfo.name}" ${status.message} error in install.`);
+                    else
+                        messageBroker('blue', 'install', `${pinfo.plugin} "${pinfo.name}" installed.`);
+                    autoInstall();
+                };
+
+                if (pinfo.uri)
+                    utility.plugins[pinfo.plugin](pinfo.uri).then((status)=> {
+                        then(status);
+                    });
+                else
+                    utility.plugins[pinfo.plugin](`${pinfo.name}#${pinfo.version}`).then((status)=> {
+                        then(status);
+                    });
+            };
+
+            messageBroker('blue', 'install', 'auto install');
+            autoInstall();
+            return;
+        }
+
         let plugin = cmds[0];
         if (!utility.plugins[plugin]) return callback('help');
 
@@ -94,8 +144,23 @@ module.exports = (()=> {
 
         messageBroker('blue', 'install', plugin);
 
-        utility.plugins[plugin](pluginUrl).then(()=> {
-            messageBroker('blue', 'install', plugin, pluginUrl, 'installed');
+        utility.plugins[plugin](pluginUrl).then((status)=> {
+            if (status.error) {
+                messageBroker('red', 'install', status.message);
+                return;
+            }
+
+            let packageName = status.lwot.name;
+            let packageVersion = status.lwot.version;
+
+            if (!lwotConfig.dependencies) lwotConfig.dependencies = {};
+            if (!lwotConfig.dependencies[plugin]) lwotConfig.dependencies[plugin] = {};
+            if (!lwotConfig.dependencies[plugin][packageName]) lwotConfig.dependencies[plugin][packageName] = {};
+            lwotConfig.dependencies[plugin][packageName].uri = pluginUrl;
+            lwotConfig.dependencies[plugin][packageName].version = packageVersion;
+            fs.writeFileSync(LWOT_FILE, JSON.stringify(lwotConfig, null, 4));
+
+            messageBroker('blue', 'install', plugin, packageName, 'installed');
             callback();
         });
     });
@@ -224,7 +289,7 @@ module.exports = (()=> {
         }
 
         if (!plugins.platform || !plugins.platform[platform]) {
-            messageBroker('red', `${platform} not exists. please "install platform ${platform}"`);
+            messageBroker('red', 'run', `${platform} not exists. please "install platform ${platform}"`);
             callback();
             return;
         }
@@ -242,29 +307,26 @@ module.exports = (()=> {
     // [lib] deploy
     lib.deploy = (platforms)=> new Promise((callback)=> {
         let platform = platforms[0];
+
         if (!platform) {
             callback('help');
             return;
         }
 
-        let destPath = path.resolve('.', 'platform', platform);
-
-        if (!plugins.platform[platform] || !plugins.platform[platform].deploy) {
-            messageBroker('yellow', 'deploy', `'${platform}' not supported deploy.`);
+        if (!plugins.platform || !plugins.platform[platform]) {
+            messageBroker('red', 'deploy', `${platform} not exists. please "install platform ${platform}"`);
             callback();
             return;
         }
 
-        if (fs.existsSync(destPath) === false) {
-            messageBroker('red', 'deploy', `'${platform}' not exists.`);
+        if (!plugins.platform[platform].deploy) {
+            messageBroker('yellow', 'deploy', platform, 'not support deploy.');
             callback();
             return;
         }
 
-        plugins.platform[platform].deploy(destPath).then(()=> {
-            messageBroker('red', 'deploy', `'${platform}' deployed`);
-            callback();
-        });
+        messageBroker('blue', 'deploy', platform);
+        plugins.platform[platform].deploy().then(callback);
     });
 
     return lib;

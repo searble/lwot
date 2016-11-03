@@ -1,47 +1,47 @@
 {
-    "name": "lwot",
-    "version": "0.1.0",
-    "description": "Leave work on time!",
-    "main": "app.js",
-    "scripts": {
-        "postinstall": "node install.js",
-        "start": "node cli"
+  "name": "lwot",
+  "version": "0.1.0",
+  "description": "Leave work on time!",
+  "main": "app.js",
+  "scripts": {
+    "postinstall": "node install.js",
+    "start": "node cli"
+  },
+  "bin": {
+    "lwot": "cli.js"
+  },
+  "contributors": [
+    {
+      "name": "proin",
+      "email": "proin@proinlab.com",
+      "web": "http://proinlab.com"
     },
-    "bin": {
-        "lwot": "cli.js"
+    {
+      "name": "ple",
+      "email": "ple@searble.net"
     },
-    "contributors": [
-        {
-            "name": "proin",
-            "email": "proin@proinlab.com",
-            "web": "http://proinlab.com"
-        },
-        {
-            "name": "ple",
-            "email": "ple@searble.net"
-        },
-        {
-            "name": "modi",
-            "email": "modi@searble.net"
-        },
-        {
-            "name": "siya",
-            "email": "siya@searble.net"
-        },
-        {
-            "name": "slee",
-            "email": "slee@searble.net"
-        }
-    ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/searble/lwot"
+    {
+      "name": "modi",
+      "email": "modi@searble.net"
     },
-    "dependencies": {
-        "cli-color": "^1.1.0",
-        "fs-extra": "^0.30.0",
-        "marked": "^0.3.6",
-        "marked-terminal": "^1.7.0",
-        "node-watch": "^0.4.1"
+    {
+      "name": "siya",
+      "email": "siya@searble.net"
+    },
+    {
+      "name": "slee",
+      "email": "slee@searble.net"
     }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/searble/lwot"
+  },
+  "dependencies": {
+    "cli-color": "^1.1.0",
+    "fs-extra": "^0.30.0",
+    "marked": "^0.3.6",
+    "marked-terminal": "^1.7.0",
+    "node-watch": "^0.4.1"
+  }
 }

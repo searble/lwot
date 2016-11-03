@@ -7,7 +7,6 @@ module.exports = (()=> {
     const path = require('path');
     const fsext = require('fs-extra');
 
-    const HOMEDIR = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
     const APP_DIR = path.resolve('.', '.lwot');
     const TMP_DIR = path.resolve(APP_DIR, 'tmp');
 
@@ -73,47 +72,75 @@ module.exports = (()=> {
             }
             // if source is git repo.
             else {
-                app.terminal('git', ['clone', PLUGIN_SRC, TMP_FILE], null, true)
+                app.terminal('git', ['clone', PLUGIN_SRC, TMP_FILE], null, null)
                     .then(next);
             }
         });
 
         // installation
         let installation = ()=> new Promise((next)=> {
+            let status = {error: true, data: ''};
             if (fs.existsSync(path.resolve(TMP_FILE)) === false) {
-                next();
+                status.data = 'DOWNLOAD ERROR';
+                next(status);
                 return;
             }
 
             fsext.removeSync(path.resolve(TMP_FILE, '.git'));
             fsext.removeSync(path.resolve(TMP_FILE, '.gitignore'));
 
-            let DEST_FILE = null;
-            if (fs.existsSync(PACAKGE_FILE)) {
-                let PACKAGE_INFO = JSON.parse(fs.readFileSync(PACAKGE_FILE, 'utf-8'));
+            if (!fs.existsSync(PACAKGE_FILE)) {
+                status.data = 'package.json not exists in this folder.';
+                next(status);
+                return;
+            }
 
-                if (PACKAGE_INFO.name && PACKAGE_INFO.plugin == PLUGIN_NAME) {
-                    DEST_FILE = path.resolve(DEST_PATH, PACKAGE_INFO.name);
-                    if (fs.existsSync(DEST_FILE))
-                        fsext.removeSync(DEST_FILE);
-                    fsext.copySync(TMP_FILE, DEST_FILE);
+            let PACKAGE_INFO = JSON.parse(fs.readFileSync(PACAKGE_FILE, 'utf-8'));
+
+            if (!PACKAGE_INFO.name || PACKAGE_INFO.plugin != PLUGIN_NAME) {
+                status.data = 'package.json is missing required. name, plugin.';
+                next(status);
+                return;
+            }
+
+            let DEST_FILE = path.resolve(DEST_PATH, PACKAGE_INFO.name);
+            if (fs.existsSync(DEST_FILE))
+                fsext.removeSync(DEST_FILE);
+            fsext.copySync(TMP_FILE, DEST_FILE);
+            fsext.removeSync(TMP_DIR);
+
+            if (PLUGIN_NAME == 'platform') {
+                let APP_PATH = path.resolve(DEST_FILE, 'app');
+                let APP_PACKAGEJSON = path.resolve(APP_PATH, 'package.json');
+                let APP_CONTROLLER = path.resolve(APP_PATH, 'controller');
+                let PROJECT_CONTROLLER = path.resolve('.', 'controller', PACKAGE_INFO.name);
+
+                if (!fs.existsSync(PROJECT_CONTROLLER)) {
+                    fsext.mkdirsSync(PROJECT_CONTROLLER);
+
+                    if (fs.existsSync(APP_CONTROLLER)) {
+                        fsext.copySync(APP_CONTROLLER, PROJECT_CONTROLLER);
+                        fsext.removeSync(APP_CONTROLLER);
+                    }
+
+                    if (fs.existsSync(APP_PACKAGEJSON)) {
+                        fsext.copySync(APP_PACKAGEJSON, path.resolve(PROJECT_CONTROLLER, 'package.json'));
+                    }
                 }
             }
 
-            fsext.removeSync(TMP_DIR);
-
-            if (DEST_FILE) {
-                app.npm(DEST_FILE, null, true).then(()=> {
-                    next();
-                });
-            } else {
-                next();
-            }
+            app.npm(DEST_FILE, null, null).then(()=> {
+                delete status.error;
+                status.lwot = PACKAGE_INFO;
+                next(status);
+            });
         });
 
         finder()
             .then(()=> installation())
-            .then(callback);
+            .then((status)=> {
+                callback(status);
+            });
     });
 
     app.plugins = {};
