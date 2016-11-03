@@ -127,7 +127,7 @@ module.exports = (()=> {
                         fsext.copySync(APP_PACKAGEJSON, path.resolve(PROJECT_CONTROLLER, 'package.json'));
                     }
                 }
-            }
+            } // TODO mvc, demo
 
             app.npm(DEST_FILE, null, null).then(()=> {
                 delete status.error;
@@ -150,6 +150,8 @@ module.exports = (()=> {
     app.plugins.compiler = (source)=> plugins('compiler', source);
 
     app.plugins.mvc = (source)=> plugins('mvc', source);
+
+    app.plugins.demo = (source)=> plugins('mvc', source);
 
     return app;
 })();

@@ -54,6 +54,31 @@ module.exports = (()=> {
         return lib;
     })();
 
+    // [module] platform dependent functions
+    let platformFunction = (fn, platforms)=> new Promise((callback)=> {
+        let platform = platforms[0];
+
+        if (!platform) {
+            callback('help');
+            return;
+        }
+
+        if (!plugins.platform || !plugins.platform[platform]) {
+            messageBroker('red', fn, `${platform} not exists. please "install platform ${platform}"`);
+            callback();
+            return;
+        }
+
+        if (!plugins.platform[platform][fn]) {
+            messageBroker('yellow', fn, `${platform} not support ${fn}.`);
+            callback();
+            return;
+        }
+
+        messageBroker('blue', fn, platform);
+        plugins.platform[platform][fn]().then(callback);
+    });
+
     // [lib]
     let lib = {};
 
@@ -379,36 +404,14 @@ module.exports = (()=> {
         });
     });
 
-    // [module] platform dependent functions
-    let platformFunction = (fn, platforms)=> new Promise((callback)=> {
-        let platform = platforms[0];
-
-        if (!platform) {
-            callback('help');
-            return;
-        }
-
-        if (!plugins.platform || !plugins.platform[platform]) {
-            messageBroker('red', fn, `${platform} not exists. please "install platform ${platform}"`);
-            callback();
-            return;
-        }
-
-        if (!plugins.platform[platform][fn]) {
-            messageBroker('yellow', fn, `${platform} not support ${fn}.`);
-            callback();
-            return;
-        }
-
-        messageBroker('blue', fn, platform);
-        plugins.platform[platform][fn]().then(callback);
-    });
-
     // [lib] run
     lib.run = (platforms)=> platformFunction('run', platforms);
 
     // [lib] deploy
     lib.deploy = (platforms)=> platformFunction('deploy', platforms);
+
+    // [lib] forever
+    lib.forever = (platforms)=> platformFunction('forever', platforms);
 
     return lib;
 })();

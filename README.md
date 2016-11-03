@@ -1,4 +1,4 @@
-## LWOT
+# LWOT
 
 Leave work on time!
 
@@ -6,41 +6,37 @@ Now beta version.
 
 This tool is not stable.
 
----
+## Pre Install
 
-### Pre Install
-
-#### For Build
+### For Build
 
 ```bash
 sudo npm install -g bower
 ```
 
-#### For Desktop Application (Electron)
+### For Desktop Application (Electron)
 
 ```bash
 brew install mono wine                   #Mac
 sudo npm install -g electron-prebuilt
 ```
 
-#### For Mobile App (Ionic Framework)
+### For Mobile App (Ionic Framework)
 
 ```bash
 sudo npm install -g cordova ionic
 ```
 
-#### For Web Service (Express.js)
+### For Web Service (Express.js)
 
 ```bash
 sudo apt-get install mysql-server mysql-client redis-*  #ubuntu
 brew install mysql redis                                #Mac
 ```
 
----
+## Getting Started
 
-### Getting Started
-
-#### Easy Start: LWOT
+### Easy Start: LWOT
 
 ```bash
 npm install -g lwot
@@ -54,7 +50,7 @@ lwot build express
 lwot run express
 ```
 
-#### Build & Watch
+### Build & Watch
 
 ```bash
 lwot build           # for all installed platforms
@@ -63,25 +59,16 @@ lwot watch           # for all installed platforms
 lwot watch express   # for express only
 ```
 
-#### Run
+### Run
 
 ```bash
 lwot run express               # for start express
 ```
 
----
+## Trouble Shooting
 
-### Trouble Shooting
-
-#### If Permission Denied
+### If Permission Denied
 
 ```bash
 sudo chown -R $USER /usr/local/
 ```
-
----
-
-### Future Work
-
-- forever: `lwot forever platform`
-- mvc: `lwot install mvc [demo-name]`
