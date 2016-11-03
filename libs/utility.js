@@ -15,6 +15,7 @@ module.exports = (()=> {
 
     // [lib] terminal
     app.terminal = (cmd, args, opts, mute)=> new Promise((callback)=> {
+        if (!opts) opts = {};
         let term = spawn(cmd, args, opts);
 
         if (!mute) {
@@ -22,7 +23,6 @@ module.exports = (()=> {
             term.stderr.pipe(process.stderr);
             process.stdin.pipe(term.stdin);
         }
-
 
         term.on('close', () => {
             if (!mute)
@@ -72,8 +72,7 @@ module.exports = (()=> {
             }
             // if source is git repo.
             else {
-                app.terminal('git', ['clone', PLUGIN_SRC, TMP_FILE], null, null)
-                    .then(next);
+                app.terminal('git', ['clone', PLUGIN_SRC, TMP_FILE], null, null).then(next);
             }
         });
 
