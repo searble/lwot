@@ -70,8 +70,9 @@ module.exports = (()=> {
                 fsext.copySync(path.resolve(PLUGIN_SRC), TMP_FILE);
                 next();
             }
-            // if source is git repo.
+            // if source is not filesystem.
             else {
+                // TODO find from repo.
                 app.terminal('git', ['clone', PLUGIN_SRC, TMP_FILE], null, null).then(next);
             }
         });
@@ -147,6 +148,8 @@ module.exports = (()=> {
     app.plugins.platform = (source)=> plugins('platform', source);
 
     app.plugins.compiler = (source)=> plugins('compiler', source);
+
+    app.plugins.mvc = (source)=> plugins('mvc', source);
 
     return app;
 })();

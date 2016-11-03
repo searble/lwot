@@ -57,7 +57,7 @@ module.exports = (()=> {
     // [lib]
     let lib = {};
 
-    // [lib] global: create
+    // [lib] create: create project
     lib.create = (args)=> new Promise((callback)=> {
         if (!args || args.length == 0) {
             callback('help');
@@ -82,7 +82,7 @@ module.exports = (()=> {
         });
     });
 
-    // [lib] inner project: install, bower, build, watch, platform, run, deploy
+    // [lib] install, i: install plugins
     lib.install = (cmds)=> new Promise((callback)=> {
         let lwotConfig = JSON.parse(fs.readFileSync(LWOT_FILE, 'utf-8'));
 
@@ -164,12 +164,111 @@ module.exports = (()=> {
             callback();
         });
     });
+    lib.i = lib.install;
 
-    lib.bower = (args)=> new Promise((callback)=> {
-        if (!args) args = [];
-        utility.bower(PROJECT_ROOT, args).then(callback);
+    // [lib] remove, rm: remove plugins
+    lib.remove = (cmds)=> new Promise((callback)=> {
+        let plugin = cmds[0];
+        let packageName = cmds[1];
+
+        if (!plugin || !utility.plugins[plugin] || !packageName) {
+            callback('help');
+            return;
+        }
+
+        if (!utility.plugins[plugin]) {
+            callback('help');
+            return;
+        }
+
+        let REMOVE_PATH = path.resolve(PLUGIN_ROOT, plugin, packageName);
+        if (!fs.existsSync(REMOVE_PATH)) {
+            messageBroker('yellow', 'remove', `${plugin} "${packageName}" does not installed.`);
+            callback();
+            return;
+        }
+
+        fsext.removeSync(REMOVE_PATH);
+        let lwotConfig = JSON.parse(fs.readFileSync(LWOT_FILE, 'utf-8'));
+        delete lwotConfig.dependencies[plugin][packageName];
+        fs.writeFileSync(LWOT_FILE, JSON.stringify(lwotConfig, null, 4));
+        messageBroker('blue', 'remove', `${plugin} "${packageName}" removed.`);
+    });
+    lib.rm = lib.remove;
+
+    // [lib] publish, pub: publish to http://lwot.org repo.
+    lib.publish = (args)=> new Promise((callback)=> {
+        // TODO
+    });
+    lib.pub = lib.publish;
+
+    // [lib] clean: clean plugins
+    lib.clean = ()=> new Promise((callback)=> {
+        if (!fs.existsSync(PLUGIN_ROOT)) {
+            messageBroker('yellow', 'clean', `any plugins does not installed.`);
+            callback();
+            return;
+        }
+
+        fsext.removeFileSync(PLUGIN_ROOT);
+        let lwotConfig = JSON.parse(fs.readFileSync(LWOT_FILE, 'utf-8'));
+        delete lwotConfig.dependencies;
+        fs.writeFileSync(LWOT_FILE, JSON.stringify(lwotConfig, null, 4));
+        messageBroker('yellow', 'clean', `project clean`);
     });
 
+    // [lib] bower: lwot bower install
+    lib.bower = (args)=> new Promise((callback)=> {
+        if (!args) args = [];
+        args.push('--save');
+        utility.terminal('bower', args, {cwd: PROJECT_ROOT}).then(callback);
+    });
+
+    // [lib] npm: lwot npm [platform] [npm-cmd] [node_modules] ...
+    lib.npm = (args)=> new Promise((callback)=> {
+        let platfromName = args.splice(0, 1)[0];
+        let ncmd = args.splice(0, 1)[0];
+        if (!platfromName || !ncmd) {
+            callback('help');
+            return;
+        }
+
+        let APP_ROOT = path.resolve(PLUGIN_ROOT, 'platform', platfromName, 'app');
+        let APP_PACKAGE_FILE = path.resolve(APP_ROOT, 'package.json');
+        let CTRL_PACKAGE_FILE = path.resolve(CONTROLLER_ROOT, platfromName, 'package.json');
+
+        if (!fs.existsSync(APP_ROOT)) {
+            messageBroker('yellow', 'npm', `"${platfromName}" does not installed.`);
+            callback();
+            return;
+        }
+
+        if (!fs.existsSync(APP_PACKAGE_FILE)) {
+            messageBroker('yellow', 'npm', `"${platfromName}" does not support npm.`);
+            callback();
+            return;
+        }
+
+        let params = JSON.parse(JSON.stringify(args));
+        params.unshift('--save');
+        params.unshift(ncmd);
+
+        utility.terminal('npm', params, {cwd: APP_ROOT}).then(()=> {
+            if (!fs.existsSync(CTRL_PACKAGE_FILE)) {
+                fsext.copySync(APP_PACKAGE_FILE, CTRL_PACKAGE_FILE);
+            } else {
+                let cpf = JSON.parse(fs.readFileSync(CTRL_PACKAGE_FILE, 'utf-8'));
+                let apf = JSON.parse(fs.readFileSync(APP_PACKAGE_FILE, 'utf-8'));
+                cpf.dependencies = apf.dependencies;
+                fs.writeFileSync(CTRL_PACKAGE_FILE, JSON.stringify(cpf, null, 4));
+            }
+
+            messageBroker('blue', 'npm', `installed to "${platfromName}"`);
+            callback();
+        });
+    });
+
+    // [lib] build
     lib.build = (platforms)=> new Promise((callback)=> {
         let dest = [];
         let PLATFORM_ROOT = path.resolve(PLUGIN_ROOT, 'platform');
@@ -245,6 +344,7 @@ module.exports = (()=> {
         compileLoop();
     });
 
+    // [lib] watch
     lib.watch = (platforms)=> new Promise((callback)=> {
         lib.build(JSON.parse(JSON.stringify(platforms))).then(()=> {
             let SRC_WATCH = [];
@@ -279,8 +379,8 @@ module.exports = (()=> {
         });
     });
 
-    // [lib] run
-    lib.run = (platforms)=> new Promise((callback)=> {
+    // [module] platform dependent functions
+    let platformFunction = (fn, platforms)=> new Promise((callback)=> {
         let platform = platforms[0];
 
         if (!platform) {
@@ -289,45 +389,26 @@ module.exports = (()=> {
         }
 
         if (!plugins.platform || !plugins.platform[platform]) {
-            messageBroker('red', 'run', `${platform} not exists. please "install platform ${platform}"`);
+            messageBroker('red', fn, `${platform} not exists. please "install platform ${platform}"`);
             callback();
             return;
         }
 
-        if (!plugins.platform[platform].run) {
-            messageBroker('yellow', 'run', platform, 'not support run.');
+        if (!plugins.platform[platform][fn]) {
+            messageBroker('yellow', fn, `${platform} not support ${fn}.`);
             callback();
             return;
         }
 
-        messageBroker('blue', 'run', platform);
-        plugins.platform[platform].run().then(callback);
+        messageBroker('blue', fn, platform);
+        plugins.platform[platform][fn]().then(callback);
     });
+
+    // [lib] run
+    lib.run = (platforms)=> platformFunction('run', platforms);
 
     // [lib] deploy
-    lib.deploy = (platforms)=> new Promise((callback)=> {
-        let platform = platforms[0];
-
-        if (!platform) {
-            callback('help');
-            return;
-        }
-
-        if (!plugins.platform || !plugins.platform[platform]) {
-            messageBroker('red', 'deploy', `${platform} not exists. please "install platform ${platform}"`);
-            callback();
-            return;
-        }
-
-        if (!plugins.platform[platform].deploy) {
-            messageBroker('yellow', 'deploy', platform, 'not support deploy.');
-            callback();
-            return;
-        }
-
-        messageBroker('blue', 'deploy', platform);
-        plugins.platform[platform].deploy().then(callback);
-    });
+    lib.deploy = (platforms)=> platformFunction('deploy', platforms);
 
     return lib;
 })();

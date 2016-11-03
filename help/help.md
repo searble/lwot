@@ -2,16 +2,16 @@
 # Getting Started
 ---
 
-```
-lwot # Install prebuilt
+```bash
 cd ~/Desktop
 lwot create myApp
 cd myApp
-lwot platform add electron
-lwot platform npm electron async
-lwot bower bootstrap
-lwot build electron
-lwot run electron
+lwot install compiler https://github.com/searble/lwot-compiler-lwot
+lwot install platform https://github.com/searble/lwot-platform-express
+lwot bower install bootstrap
+lwot npm express install async
+lwot build express
+lwot run express
 ```
 
 ---
@@ -25,23 +25,31 @@ Usage
   `- lwot create myApp`
   `- cd myApp`
 
-## platform
-API
-  `lwot platform add [platform 1] [platform 2] ...`
-  `lwot platform rm [platform 1] [platform 2] ...`
-  `lwot platform npm [platform] [node_modules] ...`
-  `- [platform] express, electron, ionic`
-Usage
-  `lwot platform add electron express`
-  `lwot platform rm electron express`
-  `lwot platform npm electron async`
-
 ## install
 API
-  `lwot install [plugin] [git url]`
-    `- [plugin] compiler, platform`
+  `lwot install [plugin] [uri]`
+    `- [plugin] compiler, platform, mvc`
 Usage
-  `- lwot install platform https://github.com/searble/lwot-example`
+  `- lwot install compiler https://github.com/searble/lwot-compiler-lwot`
+  
+## remove
+API
+  `lwot remove [plugin] [name]`
+    `- [plugin] compiler, platform, mvc`
+Usage
+  `- lwot remove compiler express`
+  
+## bower
+API
+  `lwot bower [bower-cmd] [bower_components] ...`
+Usage
+  `- lwot bower install bootstrap async`
+
+## npm
+API
+  `lwot npm [platform] [npm-cmd] [node_modules] ...`
+Usage
+  `- lwot npm express install async`
   
 ## build & watch
 API
@@ -53,10 +61,12 @@ Usage
   
 ## run
 API
-  `lwot run express`
-  `lwot run electron`
-  `lwot run ionic [ionic-cli-arguments]`
+  `lwot run [platform]`
 Usage
   `lwot run express`
-  `lwot run electron`
-  `lwot run ionic serve --lab`
+  
+## deploy
+API
+  `lwot deploy [platform]`
+Usage
+  `lwot deploy express`

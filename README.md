@@ -44,13 +44,12 @@ brew install mysql redis                                #Mac
 
 ```bash
 npm install -g lwot
-lwot # Install prebuilt
-cd ~/Desktop
 lwot create myApp
 cd myApp
 lwot install compiler https://github.com/searble/lwot-compiler-lwot
 lwot install platform https://github.com/searble/lwot-platform-express
-lwot bower bootstrap
+lwot bower install bootstrap
+lwot npm express install async
 lwot build express
 lwot run express
 ```
