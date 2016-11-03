@@ -6,15 +6,8 @@ module.exports = (()=> {
     const fsext = require('fs-extra');
     const clc = require("cli-color");
 
-    // [MODULE] compiler: this return as promise {status, compiled, ext}
-    let __compiler = {};
-
     // [MODULE] app
     let app = {};
-
-    app.setCompiler = (compi)=> {
-        if (compi) __compiler = compi;
-    };
 
     // delete path
     app.deletePath = (deletePath, exception)=> {
@@ -70,8 +63,8 @@ module.exports = (()=> {
     };
 
     // compile
-    app.compile = (mCompiler, rootPath, compilePath, noLog, onlyError)=> new Promise((callback)=> {
-        let compiler = __compiler[mCompiler];
+    app.compile = (compiler, rootPath, compilePath, noLog, onlyError)=> new Promise((callback)=> {
+        if (!compiler) compiler = {};
 
         rootPath = path.resolve(rootPath);
         compilePath = path.resolve(compilePath);
@@ -142,7 +135,7 @@ module.exports = (()=> {
             // copy to destination
             let buf = fs.readFileSync(file);
             fs.writeFileSync(dest, buf);
-            if (!noLog) console.log(clc.green('[copy]'), file);
+            if (!noLog) console.log(clc.green('[copy]'), file, dest);
             compile();
         };
 

@@ -8,26 +8,14 @@ var app = require('./app');
 
 const HOMEDIR = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 const APP_DIR = path.resolve(HOMEDIR, '.lwot');
-
 if (!fs.existsSync(APP_DIR))
     fsext.mkdirsSync(APP_DIR);
-
-// lwot default plugins
-var checkStart = fs.readdirSync(APP_DIR);
-if (checkStart.length === 0) {
-    app.install(['compiler', path.resolve(__dirname, 'plugins', 'compiler', 'default')])
-        .then(()=> app.install(['compiler', path.resolve(__dirname, 'plugins', 'compiler', 'electron')]))
-        .then(()=> app.install(['platform', path.resolve(__dirname, 'plugins', 'platform', 'electron')]))
-        .then(()=> app.install(['platform', path.resolve(__dirname, 'plugins', 'platform', 'express')]))
-        .then(()=> app.install(['platform', path.resolve(__dirname, 'plugins', 'platform', 'ionic')]));
-    return;
-}
 
 var processPath = process.cwd();
 var commands = process.argv.splice(2);
 
 // check lwot project
-if (commands[0] && commands[0] != 'create' && commands[0] != 'help' && commands[0] != 'install') {
+if (commands[0] && commands[0] != 'create' && commands[0] != 'help') {
     if (fs.existsSync(path.join(processPath, 'lwot.json')) == false) {
         console.log(clc.red('[error]'), '"' + path.join(processPath, 'lwot.json') + '"', 'is not exsits in this directory.');
         return;

@@ -1,7 +1,9 @@
-.idea
-.git
 .DS_Store
 dump.rdb
 npm-debug.log
+.idea/
+.git/
+.lwot/
 node_modules/
-www/
+bower_components/
+plugins/

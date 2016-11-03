@@ -8,7 +8,8 @@ module.exports = (()=> {
     const fsext = require('fs-extra');
 
     const HOMEDIR = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-    const APP_DIR = path.resolve(HOMEDIR, '.lwot');
+    const APP_DIR = path.resolve('.', '.lwot');
+    const TMP_DIR = path.resolve(APP_DIR, 'tmp');
 
     // [lib]
     let app = {};
@@ -46,61 +47,63 @@ module.exports = (()=> {
     });
 
     // [lib] find plugins
-    let plugins = (name, source)=> new Promise((callback)=> {
-        let targetDir = path.resolve(APP_DIR, 'tmp', name);
-        let tmpFolder = path.resolve(targetDir, new Date().getTime() + '');
+    let plugins = (PLUGIN_NAME, PLUGIN_SRC)=> new Promise((callback)=> {
+        let TMP_FILE = path.resolve(TMP_DIR, new Date().getTime() + '');
+        let PACAKGE_FILE = path.resolve(TMP_FILE, 'package.json');
+        let DEST_PATH = path.resolve('.', 'plugins', PLUGIN_NAME);
 
         // remove tmp directory
         try {
-            fsext.removeSync(path.resolve(APP_DIR, 'tmp'));
+            fsext.removeSync(TMP_DIR);
         } catch (e) {
         }
 
         // make tmp directory
         try {
-            fsext.mkdirsSync(targetDir);
+            fsext.mkdirsSync(TMP_DIR);
         } catch (e) {
         }
 
+        // find repo. and copy to tmp
         let finder = ()=> new Promise((next)=> {
             // if source is in filesystem
-            if (fs.existsSync(path.resolve(source))) {
-                fsext.copySync(source, tmpFolder);
+            if (fs.existsSync(path.resolve(PLUGIN_SRC))) {
+                fsext.copySync(path.resolve(PLUGIN_SRC), TMP_FILE);
                 next();
             }
             // if source is git repo.
             else {
-                app.terminal('git', ['clone', source, tmpFolder], null, true)
+                app.terminal('git', ['clone', PLUGIN_SRC, TMP_FILE], null, true)
                     .then(next);
             }
         });
 
         // installation
         let installation = ()=> new Promise((next)=> {
-            if (fs.existsSync(path.resolve(tmpFolder)) === false) {
+            if (fs.existsSync(path.resolve(TMP_FILE)) === false) {
                 next();
                 return;
             }
 
-            let obj = {path: path.resolve(tmpFolder)};
-            let result = null;
-            if (fs.existsSync(path.resolve(obj.path, 'package.json'))) {
-                let p = JSON.parse(fs.readFileSync(path.resolve(obj.path, 'package.json'), 'utf-8'));
-                if (p.name) {
-                    obj.name = p.name;
-                    fsext.removeSync(path.resolve(obj.path, '.git'));
-                    fsext.removeSync(path.resolve(obj.path, '.gitignore'));
-                    if (fs.existsSync(path.resolve(APP_DIR, 'plugins', name, obj.name)))
-                        fsext.removeSync(path.resolve(APP_DIR, 'plugins', name, obj.name));
-                    fsext.copySync(obj.path, path.resolve(APP_DIR, 'plugins', name, obj.name));
-                    result = path.resolve(APP_DIR, 'plugins', name, obj.name);
+            fsext.removeSync(path.resolve(TMP_FILE, '.git'));
+            fsext.removeSync(path.resolve(TMP_FILE, '.gitignore'));
+
+            let DEST_FILE = null;
+            if (fs.existsSync(PACAKGE_FILE)) {
+                let PACKAGE_INFO = JSON.parse(fs.readFileSync(PACAKGE_FILE, 'utf-8'));
+
+                if (PACKAGE_INFO.name && PACKAGE_INFO.plugin == PLUGIN_NAME) {
+                    DEST_FILE = path.resolve(DEST_PATH, PACKAGE_INFO.name);
+                    if (fs.existsSync(DEST_FILE))
+                        fsext.removeSync(DEST_FILE);
+                    fsext.copySync(TMP_FILE, DEST_FILE);
                 }
             }
 
-            fsext.removeSync(path.resolve(APP_DIR, 'tmp'));
+            fsext.removeSync(TMP_DIR);
 
-            if (result) {
-                app.npm(result, null, true).then(()=> {
+            if (DEST_FILE) {
+                app.npm(DEST_FILE, null, true).then(()=> {
                     next();
                 });
             } else {
@@ -118,7 +121,6 @@ module.exports = (()=> {
     app.plugins.platform = (source)=> plugins('platform', source);
 
     app.plugins.compiler = (source)=> plugins('compiler', source);
-
 
     return app;
 })();
