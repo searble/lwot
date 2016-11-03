@@ -48,11 +48,11 @@ lwot # Install prebuilt
 cd ~/Desktop
 lwot create myApp
 cd myApp
-lwot platform add electron
-lwot platform npm electron async
+lwot install compiler https://github.com/searble/lwot-compiler-lwot
+lwot install platform https://github.com/searble/lwot-platform-express
 lwot bower bootstrap
-lwot build electron
-lwot run electron
+lwot build express
+lwot run express
 ```
 
 #### Build & Watch
@@ -68,9 +68,6 @@ lwot watch express   # for express only
 
 ```bash
 lwot run express               # for start express
-lwot run electron              # for start electron
-lwot run ionic [ionic cmds]    # for start ionic
-lwot run ionic serve --lab     # for start ionic lab serve
 ```
 
 ---
@@ -85,16 +82,7 @@ sudo chown -R $USER /usr/local/
 
 ---
 
-### Issue
+### Future Work
 
-- deploy: `lwot deploy [platform]`
 - forever: `lwot forever platform`
-- demo: `lwot demo [demo-name]`
-
---- 
-
-### TODO
-
-- windows test
-- make plugin examples
-- improve help. 
+- mvc: `lwot install mvc [demo-name]`
