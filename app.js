@@ -56,7 +56,7 @@ module.exports = (()=> {
 
     // [module] platform dependent functions
     let platformFunction = (fn, platforms)=> new Promise((callback)=> {
-        let platform = platforms[0];
+        let platform = platforms.splice(0, 1)[0];
 
         if (!platform) {
             callback('help');
@@ -76,7 +76,7 @@ module.exports = (()=> {
         }
 
         messageBroker('blue', fn, platform);
-        plugins.platform[platform][fn]().then(callback);
+        plugins.platform[platform][fn](platforms).then(callback);
     });
 
     // [lib]
