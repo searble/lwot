@@ -157,14 +157,13 @@ module.exports = (()=> {
         }
 
         let plugin = cmds[0];
-        if (!utility.plugins[plugin]) return callback('help');
-
         let pluginUrl = cmds[1];
 
         if (!pluginUrl) {
-            messageBroker('yellow', 'install', `lwot install ${plugin} https://github.com/name/repo.`);
-            callback();
-            return;
+            plugin = 'auto';
+            pluginUrl = cmds[0];
+        } else if (!utility.plugins[plugin]) {
+            return callback('help');
         }
 
         messageBroker('blue', 'install', plugin);
@@ -177,6 +176,7 @@ module.exports = (()=> {
 
             let packageName = status.lwot.name;
             let packageVersion = status.lwot.version;
+            let pluginType = status.lwot.plugin;
 
             if (!lwotConfig.dependencies) lwotConfig.dependencies = {};
             if (!lwotConfig.dependencies[plugin]) lwotConfig.dependencies[plugin] = {};
@@ -185,7 +185,7 @@ module.exports = (()=> {
             lwotConfig.dependencies[plugin][packageName].version = packageVersion;
             fs.writeFileSync(LWOT_FILE, JSON.stringify(lwotConfig, null, 4));
 
-            messageBroker('blue', 'install', plugin, packageName, 'installed');
+            messageBroker('blue', 'install', `${plugin} "${packageName}" installed`);
             callback();
         });
     });
@@ -221,9 +221,8 @@ module.exports = (()=> {
     });
     lib.rm = lib.remove;
 
-    // [lib] publish, pub: publish to http://lwot.org repo.
+    // TODO [lib] publish, pub: publish to http://lwot.org repo.
     lib.publish = (args)=> new Promise((callback)=> {
-        // TODO
     });
     lib.pub = lib.publish;
 
@@ -402,6 +401,11 @@ module.exports = (()=> {
             fsTracer.watch(CONTROLLER_ROOT, CTRL_WATCH);
             callback();
         });
+    });
+
+    // TODO [lib] struct
+    lib.struct = ()=> new Promise((callback)=> {
+
     });
 
     // [lib] run

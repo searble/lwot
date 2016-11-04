@@ -49,7 +49,6 @@ module.exports = (()=> {
     let plugins = (PLUGIN_NAME, PLUGIN_SRC)=> new Promise((callback)=> {
         let TMP_FILE = path.resolve(TMP_DIR, new Date().getTime() + '');
         let PACAKGE_FILE = path.resolve(TMP_FILE, 'package.json');
-        let DEST_PATH = path.resolve('.', 'plugins', PLUGIN_NAME);
 
         // remove tmp directory
         try {
@@ -97,12 +96,19 @@ module.exports = (()=> {
 
             let PACKAGE_INFO = JSON.parse(fs.readFileSync(PACAKGE_FILE, 'utf-8'));
 
-            if (!PACKAGE_INFO.name || PACKAGE_INFO.plugin != PLUGIN_NAME) {
+            if (!PACKAGE_INFO.name || !PACKAGE_INFO.plugin) {
                 status.data = 'package.json is missing required. name, plugin.';
                 next(status);
                 return;
             }
 
+            if (PLUGIN_NAME !== 'auto' && PACKAGE_INFO.plugin != PLUGIN_NAME) {
+                status.data = 'package.json is missing required. name, plugin.';
+                next(status);
+                return;
+            }
+
+            let DEST_PATH = path.resolve('.', 'plugins', PACKAGE_INFO.plugin);
             let DEST_FILE = path.resolve(DEST_PATH, PACKAGE_INFO.name);
             if (fs.existsSync(DEST_FILE))
                 fsext.removeSync(DEST_FILE);
@@ -127,7 +133,7 @@ module.exports = (()=> {
                         fsext.copySync(APP_PACKAGEJSON, path.resolve(PROJECT_CONTROLLER, 'package.json'));
                     }
                 }
-            } // TODO mvc, demo
+            } // TODO mvc, struct
 
             app.npm(DEST_FILE, null, null).then(()=> {
                 delete status.error;
@@ -145,13 +151,15 @@ module.exports = (()=> {
 
     app.plugins = {};
 
+    app.plugins.auto = (source)=> plugins('auto', source);
+
     app.plugins.platform = (source)=> plugins('platform', source);
 
     app.plugins.compiler = (source)=> plugins('compiler', source);
 
-    app.plugins.mvc = (source)=> plugins('mvc', source);
+    app.plugins.struct = (source)=> plugins('struct', source);
 
-    app.plugins.demo = (source)=> plugins('mvc', source);
+    app.plugins.mvc = (source)=> plugins('mvc', source);
 
     return app;
 })();
