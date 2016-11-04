@@ -321,19 +321,9 @@ module.exports = (()=> {
             let BOWER_SRC = path.resolve(PROJECT_ROOT, 'bower_components');
             let BOWER_DEST = path.resolve(WWW_DEST, 'libs');
 
-            let compilerName = null;
-            let compilerFn = null;
-            if (plugins.platform[destPoint.name].compiler)
-                compilerName = plugins.platform[destPoint.name].compiler;
-
-            if (compilerName && (!plugins.compiler || !plugins.compiler[compilerName])) {
-                messageBroker('red', 'build', compilerName, 'compiler not exists');
-                compileLoop();
-                return;
-            } else {
-                if (plugins.compiler)
-                    compilerFn = plugins.compiler[compilerName];
-            }
+            let compilerFn = require('./libs/compiler');
+            if (plugins.platform[destPoint.name].compile && typeof plugins.platform[destPoint.name].compile == 'object')
+                compilerFn = plugins.platform[destPoint.name].compile;
 
             if (!fs.existsSync(CTRL_DEST)) fsext.mkdirsSync(CTRL_DEST);
             if (!fs.existsSync(WWW_DEST)) fsext.mkdirsSync(WWW_DEST);
@@ -379,18 +369,10 @@ module.exports = (()=> {
 
             for (let i = 0; i < platforms.length; i++) {
                 if (fs.lstatSync(path.resolve(PLATFORM_ROOT, platforms[i])).isDirectory()) {
-                    let compilerName = null;
-                    let compilerFn = null;
-                    if (plugins.platform[platforms[i]].compiler)
-                        compilerName = plugins.platform[platforms[i]].compiler;
+                    let compilerFn = require('./libs/compiler');
+                    if (plugins.platform[destPoint.name].compile && typeof plugins.platform[destPoint.name].compile == 'object')
+                        compilerFn = plugins.platform[destPoint.name].compile;
 
-                    if (compilerName && (!plugins.compiler || !plugins.compiler[compilerName])) {
-                        messageBroker('red', 'build', compilerName, 'compiler not exists');
-                        return;
-                    } else {
-                        if (plugins.compiler)
-                            compilerFn = plugins.compiler[compilerName];
-                    }
                     SRC_WATCH.push({compiler: compilerFn, dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'www')});
                     CTRL_WATCH.push({compiler: null, dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'controller')});
                 }

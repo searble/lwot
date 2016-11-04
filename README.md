@@ -22,8 +22,7 @@ sudo npm install -g bower
 npm install -g lwot
 lwot create myApp
 cd myApp
-lwot install compiler https://github.com/searble/lwot-compiler-lwot
-lwot install platform https://github.com/searble/lwot-platform-express
+lwot install https://github.com/searble/lwot-platform-express
 lwot bower install bootstrap
 lwot npm express install async
 lwot build express

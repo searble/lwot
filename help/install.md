@@ -1,6 +1,6 @@
 ## install
 API
   `lwot install [plugin] [uri]`
-    `- [plugin] compiler, platform, struct, mvc`
+    `- [plugin] platform, struct, mvc`
 Usage
-  `- lwot install compiler https://github.com/searble/lwot-compiler-lwot`
+  `- lwot install https://github.com/searble/lwot-platform-express`
