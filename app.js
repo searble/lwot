@@ -325,8 +325,16 @@ module.exports = (()=> {
             if (plugins.platform[destPoint.name].compile && typeof plugins.platform[destPoint.name].compile == 'object')
                 compilerFn = plugins.platform[destPoint.name].compile;
 
-            if (!fs.existsSync(CTRL_DEST)) fsext.mkdirsSync(CTRL_DEST);
-            if (!fs.existsSync(WWW_DEST)) fsext.mkdirsSync(WWW_DEST);
+            if (fs.existsSync(CTRL_DEST)) {
+                fsext.removeSync(CTRL_DEST);
+            }
+
+            if (!fs.existsSync(WWW_DEST)) {
+                fsext.removeSync(WWW_DEST);
+            }
+
+            fsext.mkdirsSync(CTRL_DEST);
+            fsext.mkdirsSync(WWW_DEST);
 
             // compile ui components
             fsTracer.compile(compilerFn, WWW_SRC, WWW_DEST, true, true)
@@ -370,8 +378,8 @@ module.exports = (()=> {
             for (let i = 0; i < platforms.length; i++) {
                 if (fs.lstatSync(path.resolve(PLATFORM_ROOT, platforms[i])).isDirectory()) {
                     let compilerFn = require('./libs/compiler');
-                    if (plugins.platform[destPoint.name].compile && typeof plugins.platform[destPoint.name].compile == 'object')
-                        compilerFn = plugins.platform[destPoint.name].compile;
+                    if (plugins.platform[platforms[i]].compile && typeof plugins.platform[platforms[i]].compile == 'object')
+                        compilerFn = plugins.platform[platforms[i]].compile;
 
                     SRC_WATCH.push({compiler: compilerFn, dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'www')});
                     CTRL_WATCH.push({compiler: null, dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'controller')});
