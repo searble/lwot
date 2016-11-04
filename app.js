@@ -100,6 +100,11 @@ module.exports = (()=> {
         }
 
         fsext.copySync(initPath, destPath);
+        fsext.copySync(path.resolve(libPath, 'res', 'idea', 'project.iml'), path.resolve(destPath, '.idea', args[0] + '.iml'));
+        fsext.copySync(path.resolve(libPath, 'res', 'idea', 'misc.xml'), path.resolve(destPath, '.idea', 'misc.xml'));
+        fsext.copySync(path.resolve(libPath, 'res', 'idea', 'jsLibraryMappings.xml'), path.resolve(destPath, '.idea', 'jsLibraryMappings.xml'));
+
+        fs.writeFileSync(path.resolve(destPath, '.idea', 'modules.xml'), fs.readFileSync(path.resolve(libPath, 'res', 'idea', 'modules.xml'), 'utf-8').replace(/PRJNAME/gim, args[0]));
 
         utility.bower(destPath).then(()=> {
             messageBroker('cd', destPath);
