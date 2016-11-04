@@ -154,6 +154,19 @@ module.exports = (()=> {
                 let dest = filename.replace(rootPath, compilePath.dest);
                 let comp = compilePath.compiler;
 
+                let isController = path.basename(rootPath) === 'controller' ? true : false;
+
+                if (isController) {
+                    let src = filename.replace(rootPath, '').split('/')[1];
+                    let platform = path.basename(path.resolve(compilePath.dest, '..', '..'));
+                    if (src != platform) {
+                        cpi();
+                        return;
+                    }
+
+                    dest = filename.replace(path.resolve(rootPath, platform), compilePath.dest);
+                }
+
                 app.compile(comp, filename, dest).then(()=> {
                     cpi();
                 });
