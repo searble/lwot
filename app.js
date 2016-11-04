@@ -176,7 +176,7 @@ module.exports = (()=> {
 
             let packageName = status.lwot.name;
             let packageVersion = status.lwot.version;
-            let pluginType = status.lwot.plugin;
+            plugin = status.lwot.plugin;
 
             if (!lwotConfig.dependencies) lwotConfig.dependencies = {};
             if (!lwotConfig.dependencies[plugin]) lwotConfig.dependencies[plugin] = {};
