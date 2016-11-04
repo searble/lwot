@@ -115,7 +115,7 @@ module.exports = (()=> {
             fsext.copySync(TMP_FILE, DEST_FILE);
             fsext.removeSync(TMP_DIR);
 
-            if (PLUGIN_NAME == 'platform') {
+            if (PACKAGE_INFO.plugin == 'platform') {
                 let APP_PATH = path.resolve(DEST_FILE, 'app');
                 let APP_PACKAGEJSON = path.resolve(APP_PATH, 'package.json');
                 let APP_CONTROLLER = path.resolve(APP_PATH, 'controller');

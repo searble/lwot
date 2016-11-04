@@ -405,7 +405,6 @@ module.exports = (()=> {
 
     // TODO [lib] struct
     lib.struct = ()=> new Promise((callback)=> {
-
     });
 
     // [lib] run

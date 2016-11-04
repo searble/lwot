@@ -14,26 +14,6 @@ This tool is not stable.
 sudo npm install -g bower
 ```
 
-### For Desktop Application (Electron)
-
-```bash
-brew install mono wine                   #Mac
-sudo npm install -g electron-prebuilt
-```
-
-### For Mobile App (Ionic Framework)
-
-```bash
-sudo npm install -g cordova ionic
-```
-
-### For Web Service (Express.js)
-
-```bash
-sudo apt-get install mysql-server mysql-client redis-*  #ubuntu
-brew install mysql redis                                #Mac
-```
-
 ## Getting Started
 
 ### Easy Start: LWOT
