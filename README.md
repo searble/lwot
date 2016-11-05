@@ -1,18 +1,31 @@
-# LWOT
-
-Leave work on time!
-
-Now beta version.
-
-This tool is not stable.
+> Leave work on time!
+> 
+> Now beta version.
+>
+> This tool is not stable.
 
 ## Pre Install
 
-### For Build
+### Dependencies
 
-```bash
-sudo npm install -g bower
-```
+- node
+    - install node from [node.js site](https://nodejs.org)
+    - must set node to `PATH` for using on windows
+        - add `C:\Program Files\nodejs` to `PATH`
+        - add `C:\Users\proin\AppData\Roaming\npm` to `PATH`
+- git
+    - install git from [git site](https://git-scm.com/download)
+    - must set git to `PATH` for using on windows
+        - add `C:\Program Files (x86)\Git\bin` to `PATH`
+- node_modules
+    - bower
+        ```bash
+          npm install -g bower
+        ```
+    - others (optional)
+        ```bash
+          npm install -g nodemon forever electron-prebuilt
+        ```
 
 ## Getting Started
 
