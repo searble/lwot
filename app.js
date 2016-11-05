@@ -75,8 +75,14 @@ module.exports = (()=> {
             return;
         }
 
-        messageBroker('blue', fn, platform);
-        plugins.platform[platform][fn](platforms).then(callback);
+        messageBroker('blue', fn, `deploy start '${platform}'`);
+        let st = new Date();
+
+        plugins.platform[platform][fn](platforms).then(()=> {
+            let duetime = new Date().getTime() - st.getTime();
+            messageBroker('blue', fn, `deploy finished '${platform}' (${duetime}ms)`);
+            callback();
+        });
     });
 
     // [lib]

@@ -19,10 +19,13 @@
         - add `C:\Program Files (x86)\Git\bin` to `PATH`
 - node_modules
     - bower
+     
         ```bash
           npm install -g bower
         ```
+        
     - others (optional)
+    
         ```bash
           npm install -g nodemon forever electron-prebuilt
         ```
