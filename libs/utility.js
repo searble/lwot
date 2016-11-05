@@ -50,9 +50,11 @@ module.exports = (()=> {
     });
 
     // [lib] find plugins
-    let plugins = (PLUGIN_NAME, PLUGIN_SRC)=> new Promise((callback)=> {
+    let plugins = (PLUGIN_NAME, PLUGIN_SRC, PLUGIN_REPO_NAME)=> new Promise((callback)=> {
         let TMP_FILE = path.resolve(TMP_DIR, new Date().getTime() + '');
         let PACAKGE_FILE = path.resolve(TMP_FILE, 'package.json');
+
+        let URI = null;
 
         // remove tmp directory
         try {
@@ -68,14 +70,18 @@ module.exports = (()=> {
 
         // find repo. and copy to tmp
         let finder = ()=> new Promise((next)=> {
+            // [TODO] PLUGIN_SRC pattern check: 1. version (eg. 0.0.1), 2. exists file system, 3. git url
+            // [TODO] if version, PLUGIN_SRC = PLUGIN_REPO_NAME#PLUGIN_SRC
+
             // if source is in filesystem
             if (fs.existsSync(path.resolve(PLUGIN_SRC))) {
+                URI = PLUGIN_SRC;
                 fsext.copySync(path.resolve(PLUGIN_SRC), TMP_FILE);
                 next();
             }
             // if source is not filesystem.
             else {
-                // TODO find from repo.
+                URI = PLUGIN_SRC;
                 app.terminal('git', ['clone', PLUGIN_SRC, TMP_FILE], null, null).then(next);
             }
         });
@@ -142,6 +148,7 @@ module.exports = (()=> {
             app.npm(DEST_FILE, null, null).then(()=> {
                 delete status.error;
                 status.lwot = PACKAGE_INFO;
+                status.uri = URI;
                 next(status);
             });
         });
@@ -155,15 +162,13 @@ module.exports = (()=> {
 
     app.plugins = {};
 
-    app.plugins.auto = (source)=> plugins('auto', source);
+    app.plugins.auto = (source, name)=> plugins('auto', source, name);
 
-    app.plugins.platform = (source)=> plugins('platform', source);
+    app.plugins.platform = (source, name)=> plugins('platform', source, name);
 
-    app.plugins.compiler = (source)=> plugins('compiler', source);
+    app.plugins.struct = (source, name)=> plugins('struct', source, name);
 
-    app.plugins.struct = (source)=> plugins('struct', source);
-
-    app.plugins.mvc = (source)=> plugins('mvc', source);
+    app.plugins.mvc = (source, name)=> plugins('mvc', source, name);
 
     return app;
 })();

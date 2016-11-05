@@ -56,6 +56,8 @@ module.exports = (()=> {
 
     // [module] platform dependent functions
     let platformFunction = (fn, platforms)=> new Promise((callback)=> {
+        let st = new Date();
+
         let platform = platforms.splice(0, 1)[0];
 
         if (!platform) {
@@ -76,7 +78,6 @@ module.exports = (()=> {
         }
 
         messageBroker('blue', fn, `deploy start '${platform}'`);
-        let st = new Date();
 
         plugins.platform[platform][fn](platforms).then(()=> {
             let duetime = new Date().getTime() - st.getTime();
@@ -90,6 +91,8 @@ module.exports = (()=> {
 
     // [lib] create: create project
     lib.create = (args)=> new Promise((callback)=> {
+        let st = new Date();
+
         if (!args || args.length == 0) {
             callback('help');
             return;
@@ -113,13 +116,15 @@ module.exports = (()=> {
         fs.writeFileSync(path.resolve(destPath, '.idea', 'modules.xml'), fs.readFileSync(path.resolve(libPath, 'res', 'idea', 'modules.xml'), 'utf-8').replace(/PRJNAME/gim, args[0]));
 
         utility.bower(destPath).then(()=> {
-            messageBroker('cd', destPath);
+            let duetime = new Date().getTime() - st.getTime();
+            messageBroker('blue', 'create', `created at '${destPath}' (${duetime}ms)`);
             callback();
         });
     });
 
     // [lib] install, i: install plugins
     lib.install = (cmds)=> new Promise((callback)=> {
+        let st = new Date();
         let lwotConfig = JSON.parse(fs.readFileSync(LWOT_FILE, 'utf-8'));
 
         if (!cmds || cmds.length === 0) {
@@ -132,7 +137,7 @@ module.exports = (()=> {
             for (let pluginName in lwotConfig.dependencies) {
                 for (let plugin in lwotConfig.dependencies[pluginName]) {
                     let pluginInfo = lwotConfig.dependencies[pluginName][plugin];
-                    installList.push({name: plugin, plugin: pluginName, version: pluginInfo.version, uri: pluginInfo.uri});
+                    installList.push({name: plugin, plugin: pluginName, uri: pluginInfo});
                 }
             }
 
@@ -140,6 +145,8 @@ module.exports = (()=> {
             let autoInstall = ()=> {
                 let pinfo = installList[idx++];
                 if (!pinfo) {
+                    let duetime = new Date().getTime() - st.getTime();
+                    messageBroker('blue', 'install', `installed (${duetime}ms)`);
                     callback();
                     return;
                 }
@@ -152,14 +159,9 @@ module.exports = (()=> {
                     autoInstall();
                 };
 
-                if (pinfo.uri)
-                    utility.plugins[pinfo.plugin](pinfo.uri).then((status)=> {
-                        then(status);
-                    });
-                else
-                    utility.plugins[pinfo.plugin](`${pinfo.name}#${pinfo.version}`).then((status)=> {
-                        then(status);
-                    });
+                utility.plugins[pinfo.plugin](pinfo.uri, pinfo.name).then((status)=> {
+                    then(status);
+                });
             };
 
             messageBroker('blue', 'install', 'auto install');
@@ -191,12 +193,11 @@ module.exports = (()=> {
 
             if (!lwotConfig.dependencies) lwotConfig.dependencies = {};
             if (!lwotConfig.dependencies[plugin]) lwotConfig.dependencies[plugin] = {};
-            if (!lwotConfig.dependencies[plugin][packageName]) lwotConfig.dependencies[plugin][packageName] = {};
-            lwotConfig.dependencies[plugin][packageName].uri = pluginUrl;
-            lwotConfig.dependencies[plugin][packageName].version = packageVersion;
+            lwotConfig.dependencies[plugin][packageName] = status.uri;
             fs.writeFileSync(LWOT_FILE, JSON.stringify(lwotConfig, null, 4));
 
-            messageBroker('blue', 'install', `${plugin} "${packageName}" installed`);
+            let duetime = new Date().getTime() - st.getTime();
+            messageBroker('blue', 'install', `${plugin} "${packageName}" installed (${duetime}ms)`);
             callback();
         });
     });
