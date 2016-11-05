@@ -1,7 +1,11 @@
 'use strict';
 
 module.exports = (()=> {
-    const spawn = require('child_process').spawn;
+    let spawn = require('child_process').spawn;
+    // if windows
+    if (process.platform == 'win32')
+        spawn = require('cross-spawn');
+
     const url = require('url');
     const fs = require('fs');
     const path = require('path');

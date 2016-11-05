@@ -1,6 +1,6 @@
 {
   "name": "lwot",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Leave work on time!",
   "main": "app.js",
   "scripts": {
@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "cli-color": "^1.1.0",
+    "cross-spawn": "^5.0.1",
     "fs-extra": "^0.30.0",
     "jade": "^1.11.0",
     "less": "^2.7.1",
