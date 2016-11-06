@@ -13,6 +13,8 @@ module.exports = (()=> {
 
     const APP_DIR = path.resolve('.', '.lwot');
     const TMP_DIR = path.resolve(APP_DIR, 'tmp');
+    const LWOT_TMP_PATH = path.join(path.resolve("."), ".lwot");
+    const INCLUDE_TREE_PATH = path.join(LWOT_TMP_PATH, "jadeIncludeRelationTree.json");
 
     // [lib]
     let app = {};
@@ -159,6 +161,106 @@ module.exports = (()=> {
                 callback(status);
             });
     });
+
+    // [module] find Jade Files
+    let findJadeFiles = (rootPath, result) => {
+        if (!result)
+            result = [];
+
+        if (fs.existsSync(rootPath) === false)
+            return result;
+
+        // Add File
+        if (fs.lstatSync(rootPath).isDirectory() === false) {
+            if ((/\.jade$/gim).test(rootPath))
+                result.push(rootPath);
+
+            return result;
+        }
+
+        // Find Directory Traversal
+        let files = fs.readdirSync(rootPath);
+
+        for (let i = 0; i < files.length; i++) {
+            let file = path.join(rootPath, files[i]);
+            findJadeFiles(file, result);
+        }
+
+        return result;
+    };
+
+    // [lib] createJadeIncludeRelationTree : Generation of Jade Files Include Relation Tree.
+    app.createJadeIncludeRelationTree = (SOURCE_ROOT) => {
+        if (fs.existsSync(INCLUDE_TREE_PATH))
+            fs.unlinkSync(INCLUDE_TREE_PATH);
+
+        let jadeFiles = findJadeFiles(SOURCE_ROOT);
+        let metaObj = {};
+
+        for (let i = 0; i < jadeFiles.length; i++) {
+            let includeInfo = app.parseIncludeInfo(jadeFiles[i]);
+
+            if (includeInfo)
+                metaObj = app.createMetaInfo(metaObj, jadeFiles[i], includeInfo);
+        }
+
+        fs.writeFileSync(INCLUDE_TREE_PATH, JSON.stringify(metaObj), "UTF-8");
+    };
+
+    // [lib] parseIncludeInfo : Calculate Jade Files Include Relation.(return JSON Array)
+    app.parseIncludeInfo = function (filePath) {
+        let contents = fs.readFileSync(filePath, "UTF-8");
+        contents = contents.replace(/[\/]+[\s]*include[\s]+[^\n]+/gim, "");
+        let includeInfo = contents.match(/include[\s]+[^\n]+/gim);
+
+        if (includeInfo) {
+            for (let i = 0; i < includeInfo.length; i++) {
+                includeInfo[i] = (/include[\s]+([^\n]+)/gim).exec(includeInfo[i])[1];
+
+                if (includeInfo[i].indexOf("./") == 0 || includeInfo[i].substr(0, 1) != ".")
+                    includeInfo[i] = path.dirname(filePath) + "/" + includeInfo[i].replace(/[\.]+[\/]+/gim, "") + ".jade";
+                else {
+                    let dirPath = path.dirname(filePath).split("/");
+                    let distance = includeInfo[i].match(/\.\.\//gim).length;
+                    let resultPath = "";
+
+                    for (var j = 1; j < dirPath.length - distance; j++)
+                        resultPath += "/" + dirPath[j];
+
+                    resultPath += "/" + includeInfo[i].replace(/[\.]+[\/]+/gim, "");
+                    includeInfo[i] = resultPath + ".jade";
+                }
+            }
+
+            return includeInfo;
+        }
+
+        return [];
+    };
+
+    // [lib] createMetaInfo : Generation of Jade Files Include Relation Meta Object.
+    app.createMetaInfo = function (metaObj, filePath, includeInfo) {
+        for (let i = 0; i < includeInfo.length; i++) {
+            if (!(fs.existsSync(includeInfo[i])))
+                continue;
+
+            if (!metaObj[includeInfo[i]])
+                metaObj[includeInfo[i]] = [filePath];
+            else {
+                let j = 0;
+
+                for (j = 0; j < metaObj[includeInfo[i]].length; j++) {
+                    if (filePath == metaObj[includeInfo[i]][j])
+                        break;
+                }
+
+                if (j == metaObj[includeInfo[i]].length)
+                    metaObj[includeInfo[i]].push(filePath);
+            }
+        }
+
+        return metaObj;
+    };
 
     app.plugins = {};
 

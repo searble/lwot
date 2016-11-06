@@ -331,6 +331,9 @@ module.exports = (()=> {
             if (fs.lstatSync(path.resolve(PLATFORM_ROOT, platforms[i])).isDirectory())
                 dest.push({name: platforms[i], dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app')});
 
+        // Generation of jadeIncludeRelationTree.json
+        utility.createJadeIncludeRelationTree(SOURCE_ROOT);
+
         let idx = 0;
         let compileLoop = ()=> {
             let destPoint = dest[idx++];
@@ -408,8 +411,14 @@ module.exports = (()=> {
                     if (plugins.platform[platforms[i]].compile && typeof plugins.platform[platforms[i]].compile == 'object')
                         compilerFn = plugins.platform[platforms[i]].compile;
 
-                    SRC_WATCH.push({compiler: compilerFn, dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'www')});
-                    CTRL_WATCH.push({compiler: null, dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'controller')});
+                    SRC_WATCH.push({
+                        compiler: compilerFn,
+                        dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'www')
+                    });
+                    CTRL_WATCH.push({
+                        compiler: null,
+                        dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'controller')
+                    });
                 }
             }
 

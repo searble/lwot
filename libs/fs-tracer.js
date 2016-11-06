@@ -5,6 +5,9 @@ module.exports = (()=> {
     const path = require('path');
     const fsext = require('fs-extra');
     const clc = require("cli-color");
+    const utility = require("./utility");
+    const LWOT_TMP_PATH = path.join(path.resolve('.'), '.lwot');
+    const INCLUDE_TREE_PATH = path.join(LWOT_TMP_PATH, "jadeIncludeRelationTree.json");
 
     // [MODULE] app
     let app = {};
@@ -142,37 +145,91 @@ module.exports = (()=> {
         compile();
     });
 
+    // [module] renewalJadeIncludeTree : Renewal of Jade Files Include Releation Tree.
+    let renewalJadeIncludeTree = (filename) => {
+        let metaObj = JSON.parse(fs.readFileSync(INCLUDE_TREE_PATH, "UTF-8"));
+        filename = [filename];
+
+        if (!(fs.existsSync(filename[0]))) {
+            if (metaObj[filename[0]])
+                delete metaObj[filename[0]];
+            else {
+                let keys = Object.keys(metaObj);
+
+                for (let i = 0; i < keys.length; i++) {
+                    for (let j = 0; j < metaObj[keys[i]].length; j++) {
+                        if (metaObj[keys[i]][j] == filename[0]) {
+                            metaObj[keys[i]].splice(j, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            fs.writeFileSync(INCLUDE_TREE_PATH, JSON.stringify(metaObj), "UTF-8");
+        }
+        else {
+            if (metaObj[filename[0]]) {
+                for (let i = 0; i < metaObj[filename[0]].length; i++)
+                    filename.push(metaObj[filename[0]][i]);
+            }
+            else {
+                let includeInfo = utility.parseIncludeInfo(filename[0]);
+                metaObj = utility.createMetaInfo(metaObj, filename[0], includeInfo);
+                fs.writeFileSync(INCLUDE_TREE_PATH, JSON.stringify(metaObj), "UTF-8");
+            }
+        }
+
+        return filename;
+    };
+
     // watch
     app.watch = (rootPath, compilePaths)=> {
         let watch = require('node-watch');
+
         watch(rootPath, (filename)=> {
-            let idx = 0;
-            let cpi = ()=> {
-                let compilePath = compilePaths[idx++];
-                if (!compilePath)
+            filename = renewalJadeIncludeTree(filename);
+
+            let fileLoop = (compilePath, idx) => new Promise((callback) => {
+                if (filename.length == idx) {
+                    callback();
                     return;
-                let dest = filename.replace(rootPath, compilePath.dest);
+                }
+
+                let dest = filename[idx].replace(rootPath, compilePath.dest);
                 let comp = compilePath.compiler;
 
                 let isController = path.basename(rootPath) === 'controller' ? true : false;
 
                 if (isController) {
-                    let src = filename.replace(rootPath, '').split('/')[1];
+                    let src = filename[idx].replace(rootPath, '').split('/')[1];
                     let platform = path.basename(path.resolve(compilePath.dest, '..', '..'));
+
                     if (src != platform) {
-                        cpi();
+                        callback();
                         return;
                     }
 
-                    dest = filename.replace(path.resolve(rootPath, platform), compilePath.dest);
+                    dest = filename[idx].replace(path.resolve(rootPath, platform), compilePath.dest);
                 }
 
-                app.compile(comp, filename, dest).then(()=> {
-                    cpi();
+                app.compile(comp, filename[idx], dest).then(()=> {
+                    fileLoop(compilePath, idx + 1);
+                });
+            });
+
+            let cpi = (idx)=> {
+                if (compilePaths.length == idx)
+                    return;
+
+                let compilePath = compilePaths[idx];
+
+                fileLoop(compilePath, 0).then(() => {
+                    cpi(idx + 1);
                 });
             };
 
-            cpi();
+            cpi(0);
         });
     };
 
