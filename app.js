@@ -60,7 +60,7 @@ module.exports = (()=> {
 
         let platform = platforms.splice(0, 1)[0];
 
-        if(!fn) {
+        if (!fn) {
             messageBroker('yellow', platform, `use platform functions. eg) 'lwot ${platform} run'`);
             return;
         }
@@ -431,7 +431,11 @@ module.exports = (()=> {
     // [lib] bind platform function
     for (let platform in plugins.platform)
         if (!lib[platform])
-            lib[platform] = (args) => platformFunction(args[0], [platform]);
+            lib[platform] = (args) => new Promise((next)=> {
+                let fn = args.splice(0, 1);
+                args.unshift(platform);
+                platformFunction(fn, args).then(next);
+            });
 
     return lib;
 })();
