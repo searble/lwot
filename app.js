@@ -77,11 +77,11 @@ module.exports = (()=> {
             return;
         }
 
-        messageBroker('blue', fn, `deploy start '${platform}'`);
+        messageBroker('blue', fn, `${fn} start '${platform}'`);
 
         plugins.platform[platform][fn](platforms).then(()=> {
             let duetime = new Date().getTime() - st.getTime();
-            messageBroker('blue', fn, `deploy finished '${platform}' (${duetime}ms)`);
+            messageBroker('blue', fn, `${fn} finished '${platform}' (${duetime}ms)`);
             callback();
         });
     });
@@ -112,8 +112,11 @@ module.exports = (()=> {
         fsext.copySync(path.resolve(libPath, 'res', 'idea', 'project.iml'), path.resolve(destPath, '.idea', args[0] + '.iml'));
         fsext.copySync(path.resolve(libPath, 'res', 'idea', 'misc.xml'), path.resolve(destPath, '.idea', 'misc.xml'));
         fsext.copySync(path.resolve(libPath, 'res', 'idea', 'jsLibraryMappings.xml'), path.resolve(destPath, '.idea', 'jsLibraryMappings.xml'));
-
         fs.writeFileSync(path.resolve(destPath, '.idea', 'modules.xml'), fs.readFileSync(path.resolve(libPath, 'res', 'idea', 'modules.xml'), 'utf-8').replace(/PRJNAME/gim, args[0]));
+
+        let lwotjson = JSON.parse(fs.readFileSync(path.resolve(destPath, 'lwot.json'), 'utf-8'));
+        lwotjson.name = args[0];
+        fs.writeFileSync(path.resolve(destPath, 'lwot.json'), JSON.stringify(lwotjson, null, 4));
 
         utility.bower(destPath).then(()=> {
             let duetime = new Date().getTime() - st.getTime();
@@ -128,8 +131,15 @@ module.exports = (()=> {
         let lwotConfig = JSON.parse(fs.readFileSync(LWOT_FILE, 'utf-8'));
 
         if (!cmds || cmds.length === 0) {
+            // copy webstorm settings
+            if (!fs.existsSync(path.resolve('.', '.idea'))) {
+                fsext.copySync(path.resolve(__dirname, 'res', 'idea', 'project.iml'), path.resolve('.', '.idea', lwotConfig.name + '.iml'));
+                fsext.copySync(path.resolve(__dirname, 'res', 'idea', 'misc.xml'), path.resolve('.', '.idea', 'misc.xml'));
+                fsext.copySync(path.resolve(__dirname, 'res', 'idea', 'jsLibraryMappings.xml'), path.resolve('.', '.idea', 'jsLibraryMappings.xml'));
+                fs.writeFileSync(path.resolve('.', '.idea', 'modules.xml'), fs.readFileSync(path.resolve(__dirname, 'res', 'idea', 'modules.xml'), 'utf-8').replace(/PRJNAME/gim, lwotConfig.name));
+            }
+
             if (!lwotConfig.dependencies) {
-                callback('help');
                 return;
             }
 
