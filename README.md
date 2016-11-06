@@ -30,6 +30,16 @@
           npm install -g nodemon forever electron-prebuilt
         ```
 
+### Trouble Shooting
+
+#### If Permission Denied
+
+```bash
+sudo chown -R $USER /usr/local/
+```
+
+---
+
 ## Getting Started
 
 ### Easy Start: LWOT
@@ -42,7 +52,7 @@ lwot install https://github.com/searble/lwot-platform-express
 lwot bower install bootstrap
 lwot npm express install async
 lwot build express
-lwot run express
+lwot express run
 ```
 
 ### Build & Watch
@@ -54,16 +64,9 @@ lwot watch           # for all installed platforms
 lwot watch express   # for express only
 ```
 
-### Run
+### Platform Functions
 
 ```bash
-lwot run express               # for start express
-```
-
-## Trouble Shooting
-
-### If Permission Denied
-
-```bash
-sudo chown -R $USER /usr/local/
+lwot [platform] [function]
+lwot express run     # for start express
 ```

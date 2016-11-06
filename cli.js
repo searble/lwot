@@ -57,10 +57,12 @@ if (typeof fn === 'function') {
             console.log(marked(fs.readFileSync(md, 'utf-8')));
         }
     });
-} else {
+} else if (!commands[0] || commands[0] === 'help') {
     var marked = require('marked');
     var TerminalRenderer = require('marked-terminal');
     marked.setOptions({renderer: new TerminalRenderer()});
     var md = path.resolve(__dirname, 'help', helpFile);
     console.log(marked(fs.readFileSync(md, 'utf-8')));
+} else {
+    console.log(`${clc.red('[platform]')} ${commands[0]} not exists. please "lwot install platform ${commands[0]}"`);
 }

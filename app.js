@@ -60,13 +60,18 @@ module.exports = (()=> {
 
         let platform = platforms.splice(0, 1)[0];
 
+        if(!fn) {
+            messageBroker('yellow', platform, `use platform functions. eg) 'lwot ${platform} run'`);
+            return;
+        }
+
         if (!platform) {
             callback('help');
             return;
         }
 
         if (!plugins.platform || !plugins.platform[platform]) {
-            messageBroker('red', fn, `${platform} not exists. please "install platform ${platform}"`);
+            messageBroker('red', fn, `${platform} not exists. please "lwot install platform ${platform}"`);
             callback();
             return;
         }
@@ -419,14 +424,14 @@ module.exports = (()=> {
     lib.struct = ()=> new Promise((callback)=> {
     });
 
-    // [lib] run
-    lib.run = (platforms)=> platformFunction('run', platforms);
+    // TODO [lib] template
+    lib.template = ()=> new Promise((callback)=> {
+    });
 
-    // [lib] deploy
-    lib.deploy = (platforms)=> platformFunction('deploy', platforms);
-
-    // [lib] forever
-    lib.forever = (platforms)=> platformFunction('forever', platforms);
+    // [lib] bind platform function
+    for (let platform in plugins.platform)
+        if (!lib[platform])
+            lib[platform] = (args) => platformFunction(args[0], [platform]);
 
     return lib;
 })();
