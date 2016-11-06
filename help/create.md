@@ -1,6 +1,6 @@
 ## create
 API
-  `- lwot create [your-project]`
+  `lwot create [your-project]`
 Usage
-  `- lwot create myApp`
-  `- cd myApp`
+  `lwot create myApp`
+  `cd myApp`
