@@ -70,3 +70,16 @@ lwot watch express   # for express only
 lwot [platform] [function]
 lwot express run     # for start express
 ```
+
+---
+
+## Contribution Guide
+
+### Commit Tag List
+
+```bash
+[add]       # Addition of Modules or Code Piece or ETC...
+[rm]        # Remove of Modules or Code Piece or ETC...
+[mod]       # Modification of Modules or Code Piece or ETC...(In this case, When modification is generated without bug fix)
+[fix]       # Bug Fix of modules or Code Piece or ETC...
+```
