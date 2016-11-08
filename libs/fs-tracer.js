@@ -147,8 +147,12 @@ module.exports = (()=> {
 
     // [module] renewalJadeIncludeTree : Renewal of Jade Files Include Releation Tree.
     let renewalJadeIncludeTree = (filename) => {
-        let metaObj = JSON.parse(fs.readFileSync(INCLUDE_TREE_PATH, "UTF-8"));
         filename = [filename];
+
+        if (!((/\.jade$/gim).test(filename)))
+            return filename;
+
+        let metaObj = JSON.parse(fs.readFileSync(INCLUDE_TREE_PATH, "UTF-8"));
 
         if (!(fs.existsSync(filename[0]))) {
             if (metaObj[filename[0]])
