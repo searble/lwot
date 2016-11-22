@@ -39,6 +39,23 @@ module.exports = (()=> {
         }
     });
 
+    compiler.js = (jsPath)=> new Promise((callback)=> {
+        let babel = require("babel-core");
+
+        let contents = '';
+        try {
+            contents = fs.readFileSync(jsPath, 'utf-8');
+            let compiled = babel.transform(contents, {
+                presets: [require('babel-preset-es2015')],
+                minified: true
+            }).code;
+
+            callback({status: true, compiled: compiled, ext: '.js'});
+        } catch (err) {
+        }
+        return callback({status: false, err: err});
+    });
+
     compiler.less = (lessPath) => new Promise((callback)=> {
         let less = require("less");
         let contents = '';
