@@ -47,6 +47,9 @@ module.exports = (()=> {
             contents = fs.readFileSync(jsPath, 'utf-8');
             let compiled = babel.transform(contents, {
                 presets: [require('babel-preset-es2015')],
+                plugins: [
+                    require('babel-plugin-transform-es2015-modules-commonjs')
+                ],
                 minified: true
             }).code;
 
