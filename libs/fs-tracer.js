@@ -194,9 +194,9 @@ module.exports = (()=> {
         watch(rootPath, (filename)=> {
             filename = renewalJadeIncludeTree(filename);
 
-            let fileLoop = (compilePath, idx) => new Promise((callback) => {
-                if (filename.length == idx) {
-                    callback();
+            let fileLoop = (compilePath, idx, resolve) => {
+                if (!filename[idx]) {
+                    resolve();
                     return;
                 }
 
@@ -218,18 +218,18 @@ module.exports = (()=> {
                 }
 
                 app.compile(comp, filename[idx], dest).then(()=> {
-                    fileLoop(compilePath, idx + 1);
+                    fileLoop(compilePath, idx + 1, resolve);
                 });
-            });
+            };
 
-            let cpi = (idx)=> {
-                if (compilePaths.length == idx)
+            let cpi = (cidx)=> {
+                if (!compilePaths[cidx])
                     return;
 
-                let compilePath = compilePaths[idx];
+                let compilePath = compilePaths[cidx];
 
-                fileLoop(compilePath, 0).then(() => {
-                    cpi(idx + 1);
+                fileLoop(compilePath, 0, ()=> {
+                    cpi(cidx + 1);
                 });
             };
 

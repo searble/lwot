@@ -83,7 +83,13 @@ module.exports = (()=> {
             }
             // if source is not filesystem.
             else {
+                if (PLUGIN_SRC === 'electron') PLUGIN_SRC = 'https://github.com/searble/lwot-platform-electron';
+                if (PLUGIN_SRC === 'express') PLUGIN_SRC = 'https://github.com/searble/lwot-platform-express';
+                if (PLUGIN_SRC === 'ionic') PLUGIN_SRC = 'https://github.com/searble/lwot-platform-ionic';
+                if (PLUGIN_SRC === 'cordova') PLUGIN_SRC = 'https://github.com/searble/lwot-platform-cordova';
+
                 URI = PLUGIN_SRC;
+
                 app.terminal('git', ['clone', PLUGIN_SRC, TMP_FILE], null, null).then(next);
             }
         });

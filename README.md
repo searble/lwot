@@ -48,7 +48,9 @@ sudo chown -R $USER /usr/local/
 npm install -g lwot
 lwot create myApp
 cd myApp
-lwot install https://github.com/searble/lwot-platform-express
+lwot install express
+lwot install cordova
+lwot install electron
 lwot bower install bootstrap
 lwot npm express install async
 lwot build express
