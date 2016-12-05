@@ -24,8 +24,7 @@ module.exports = (()=> {
         console.log(clc[color]('[' + cmd + ']'), message);
     };
 
-    // [module] load plugin
-    let plugins = (()=> {
+    let loadPlugins = ()=> {
         let lib = {};
         if (fs.existsSync(PLUGIN_ROOT) === false)
             return lib;
@@ -52,7 +51,10 @@ module.exports = (()=> {
             }
         }
         return lib;
-    })();
+    };
+
+    // [module] load plugin
+    let plugins = loadPlugins();
 
     // [module] platform dependent functions
     let platformFunction = (fn, platforms)=> new Promise((callback)=> {
@@ -135,6 +137,22 @@ module.exports = (()=> {
         let st = new Date();
         let lwotConfig = JSON.parse(fs.readFileSync(LWOT_FILE, 'utf-8'));
 
+        let finalize = (plugin, packageName)=> new Promise((resolve)=> {
+            plugins = loadPlugins();
+            if (plugins[plugin][packageName] && plugins[plugin][packageName].install) {
+                plugins[plugin][packageName].install().then(()=> {
+                    let duetime = new Date().getTime() - st.getTime();
+                    messageBroker('blue', 'install', `${plugin} "${packageName}" installed (${duetime}ms)`);
+                    resolve();
+                });
+            } else {
+                let duetime = new Date().getTime() - st.getTime();
+                messageBroker('blue', 'install', `${plugin} "${packageName}" installed (${duetime}ms)`);
+                resolve();
+            }
+        });
+
+
         if (!cmds || cmds.length === 0) {
             // copy webstorm settings
             if (!fs.existsSync(path.resolve('.', '.idea'))) {
@@ -169,13 +187,13 @@ module.exports = (()=> {
                 let then = (status)=> {
                     if (status.error)
                         messageBroker('red', 'install', `${pinfo.plugin} "${pinfo.name}" ${status.message} error in install.`);
-                    else
-                        messageBroker('blue', 'install', `${pinfo.plugin} "${pinfo.name}" installed.`);
                     autoInstall();
                 };
 
                 utility.plugins[pinfo.plugin](pinfo.uri, pinfo.name).then((status)=> {
-                    then(status);
+                    finalize(pinfo.plugin, pinfo.name).then(()=> {
+                        then(status);
+                    });
                 });
             };
 
@@ -211,11 +229,10 @@ module.exports = (()=> {
             lwotConfig.dependencies[plugin][packageName] = status.uri;
             fs.writeFileSync(LWOT_FILE, JSON.stringify(lwotConfig, null, 4));
 
-            let duetime = new Date().getTime() - st.getTime();
-            messageBroker('blue', 'install', `${plugin} "${packageName}" installed (${duetime}ms)`);
-            callback();
+            finalize(plugin, packageName).then(callback);
         });
     });
+
     lib.i = lib.install;
 
     // [lib] remove, rm: remove plugins
@@ -435,6 +452,11 @@ module.exports = (()=> {
 
     // TODO [lib] template
     lib.template = ()=> new Promise((callback)=> {
+    });
+
+    lib.v = lib['-v'] = lib.version = ()=> new Promise((callback)=> {
+        let version = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8')).version;
+        console.log(`v${version}`);
     });
 
     // [lib] bind platform function
