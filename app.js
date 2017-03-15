@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (()=> {
+module.exports = (() => {
     const clc = require("cli-color");
     const path = require("path");
     const fs = require("fs");
@@ -24,7 +24,7 @@ module.exports = (()=> {
         console.log(clc[color]('[' + cmd + ']'), message);
     };
 
-    let loadPlugins = ()=> {
+    let loadPlugins = () => {
         let lib = {};
         if (fs.existsSync(PLUGIN_ROOT) === false)
             return lib;
@@ -57,7 +57,7 @@ module.exports = (()=> {
     let plugins = loadPlugins();
 
     // [module] platform dependent functions
-    let platformFunction = (fn, platforms)=> new Promise((callback)=> {
+    let platformFunction = (fn, platforms) => new Promise((callback) => {
         let st = new Date();
 
         let platform = platforms.splice(0, 1)[0];
@@ -86,7 +86,7 @@ module.exports = (()=> {
 
         messageBroker('blue', fn, `${fn} start '${platform}'`);
 
-        plugins.platform[platform][fn](platforms).then(()=> {
+        plugins.platform[platform][fn](platforms).then(() => {
             let duetime = new Date().getTime() - st.getTime();
             messageBroker('blue', fn, `${fn} finished '${platform}' (${duetime}ms)`);
             callback();
@@ -97,7 +97,7 @@ module.exports = (()=> {
     let lib = {};
 
     // [lib] create: create project
-    lib.create = (args)=> new Promise((callback)=> {
+    lib.create = (args) => new Promise((callback) => {
         let st = new Date();
 
         if (!args || args.length == 0) {
@@ -125,7 +125,7 @@ module.exports = (()=> {
         lwotjson.name = args[0];
         fs.writeFileSync(path.resolve(destPath, 'lwot.json'), JSON.stringify(lwotjson, null, 4));
 
-        utility.bower(destPath).then(()=> {
+        utility.bower(destPath).then(() => {
             let duetime = new Date().getTime() - st.getTime();
             messageBroker('blue', 'create', `created at '${destPath}' (${duetime}ms)`);
             callback();
@@ -133,14 +133,14 @@ module.exports = (()=> {
     });
 
     // [lib] install, i: install plugins
-    lib.install = (cmds)=> new Promise((callback)=> {
+    lib.install = (cmds) => new Promise((callback) => {
         let st = new Date();
         let lwotConfig = JSON.parse(fs.readFileSync(LWOT_FILE, 'utf-8'));
 
-        let finalize = (plugin, packageName)=> new Promise((resolve)=> {
+        let finalize = (plugin, packageName) => new Promise((resolve) => {
             plugins = loadPlugins();
             if (plugins[plugin][packageName] && plugins[plugin][packageName].install) {
-                plugins[plugin][packageName].install().then(()=> {
+                plugins[plugin][packageName].install().then(() => {
                     let duetime = new Date().getTime() - st.getTime();
                     messageBroker('blue', 'install', `${plugin} "${packageName}" installed (${duetime}ms)`);
                     resolve();
@@ -175,7 +175,7 @@ module.exports = (()=> {
             }
 
             let idx = 0;
-            let autoInstall = ()=> {
+            let autoInstall = () => {
                 let pinfo = installList[idx++];
                 if (!pinfo) {
                     let duetime = new Date().getTime() - st.getTime();
@@ -184,14 +184,14 @@ module.exports = (()=> {
                     return;
                 }
 
-                let then = (status)=> {
+                let then = (status) => {
                     if (status.error)
                         messageBroker('red', 'install', `${pinfo.plugin} "${pinfo.name}" ${status.message} error in install.`);
                     autoInstall();
                 };
 
-                utility.plugins[pinfo.plugin](pinfo.uri, pinfo.name).then((status)=> {
-                    finalize(pinfo.plugin, pinfo.name).then(()=> {
+                utility.plugins[pinfo.plugin](pinfo.uri, pinfo.name).then((status) => {
+                    finalize(pinfo.plugin, pinfo.name).then(() => {
                         then(status);
                     });
                 });
@@ -214,7 +214,7 @@ module.exports = (()=> {
 
         messageBroker('blue', 'install', plugin);
 
-        utility.plugins[plugin](pluginUrl).then((status)=> {
+        utility.plugins[plugin](pluginUrl).then((status) => {
             if (status.error) {
                 messageBroker('red', 'install', status.message);
                 return;
@@ -236,7 +236,7 @@ module.exports = (()=> {
     lib.i = lib.install;
 
     // [lib] remove, rm: remove plugins
-    lib.remove = (cmds)=> new Promise((callback)=> {
+    lib.remove = (cmds) => new Promise((callback) => {
         let plugin = cmds[0];
         let packageName = cmds[1];
 
@@ -266,12 +266,12 @@ module.exports = (()=> {
     lib.rm = lib.remove;
 
     // TODO [lib] publish, pub: publish to http://lwot.org repo.
-    lib.publish = (args)=> new Promise((callback)=> {
+    lib.publish = (args) => new Promise((callback) => {
     });
     lib.pub = lib.publish;
 
     // [lib] clean: clean plugins
-    lib.clean = ()=> new Promise((callback)=> {
+    lib.clean = () => new Promise((callback) => {
         if (!fs.existsSync(PLUGIN_ROOT)) {
             messageBroker('yellow', 'clean', `any plugins does not installed.`);
             callback();
@@ -286,14 +286,14 @@ module.exports = (()=> {
     });
 
     // [lib] bower: lwot bower install
-    lib.bower = (args)=> new Promise((callback)=> {
+    lib.bower = (args) => new Promise((callback) => {
         if (!args) args = [];
         args.push('--save');
         utility.terminal('bower', args, {cwd: PROJECT_ROOT}).then(callback);
     });
 
     // [lib] npm: lwot npm [platform] [npm-cmd] [node_modules] ...
-    lib.npm = (args)=> new Promise((callback)=> {
+    lib.npm = (args) => new Promise((callback) => {
         let platfromName = args.splice(0, 1)[0];
         let ncmd = args.splice(0, 1)[0];
         if (!platfromName || !ncmd) {
@@ -321,7 +321,7 @@ module.exports = (()=> {
         params.unshift('--save');
         params.unshift(ncmd);
 
-        utility.terminal('npm', params, {cwd: APP_ROOT}).then(()=> {
+        utility.terminal('npm', params, {cwd: APP_ROOT}).then(() => {
             if (!fs.existsSync(CTRL_PACKAGE_FILE)) {
                 fsext.copySync(APP_PACKAGE_FILE, CTRL_PACKAGE_FILE);
             } else {
@@ -337,22 +337,25 @@ module.exports = (()=> {
     });
 
     // [lib] build
-    lib.build = (platforms)=> new Promise((callback)=> {
+    lib.build = (platforms) => new Promise((callback) => {
         let dest = [];
         let PLATFORM_ROOT = path.resolve(PLUGIN_ROOT, 'platform');
         if (platforms.length == 0)
             platforms = fs.readdirSync(PLATFORM_ROOT);
 
         // find platforms
-        for (let i = 0; i < platforms.length; i++)
-            if (fs.lstatSync(path.resolve(PLATFORM_ROOT, platforms[i])).isDirectory())
+        for (let i = 0; i < platforms.length; i++) {
+            if (platforms[i] === 'dist') {
+                dest.push({name: platforms[i], dest: path.resolve('.')});
+            } else if (fs.lstatSync(path.resolve(PLATFORM_ROOT, platforms[i])).isDirectory())
                 dest.push({name: platforms[i], dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app')});
+        }
 
         // Generation of jadeIncludeRelationTree.json
         utility.createJadeIncludeRelationTree(SOURCE_ROOT);
 
         let idx = 0;
-        let compileLoop = ()=> {
+        let compileLoop = () => {
             let destPoint = dest[idx++];
             if (!destPoint) {
                 callback();
@@ -369,24 +372,22 @@ module.exports = (()=> {
             let BOWER_DEST = path.resolve(WWW_DEST, 'libs');
 
             let compilerFn = require('./libs/compiler');
-            if (plugins.platform[destPoint.name].compile && typeof plugins.platform[destPoint.name].compile == 'object')
+            if (plugins.platform && plugins.platform[destPoint.name].compile && typeof plugins.platform[destPoint.name].compile == 'object')
                 compilerFn = plugins.platform[destPoint.name].compile;
 
-            if (fs.existsSync(CTRL_DEST)) {
+            if (fs.existsSync(CTRL_DEST))
                 fsext.removeSync(CTRL_DEST);
-            }
 
-            if (!fs.existsSync(WWW_DEST)) {
+            if (!fs.existsSync(WWW_DEST))
                 fsext.removeSync(WWW_DEST);
-            }
 
             fsext.mkdirsSync(CTRL_DEST);
             fsext.mkdirsSync(WWW_DEST);
 
             // compile ui components
             fsTracer.compile(compilerFn, WWW_SRC, WWW_DEST, true, true)
-                .then(()=> fsTracer.compile(null, CTRL_SRC, CTRL_DEST, true, true))
-                .then(()=> new Promise((next)=> {
+                .then(() => fsTracer.compile(null, CTRL_SRC, CTRL_DEST, true, true))
+                .then(() => new Promise((next) => {
                     if (fs.existsSync(path.resolve(CTRL_SRC, 'package.json')))
                         fsext.copySync(path.resolve(CTRL_SRC, 'package.json'), path.resolve(destPoint.dest, 'package.json'));
 
@@ -402,8 +403,8 @@ module.exports = (()=> {
 
                     next();
                 }))
-                .then(()=> utility.npm(destPoint.dest))
-                .then(()=> {
+                .then(() => utility.npm(destPoint.dest))
+                .then(() => {
                     let duetime = new Date().getTime() - st.getTime();
                     messageBroker('blue', 'build', destPoint.name, '(' + duetime + 'ms)');
                     compileLoop();
@@ -414,8 +415,8 @@ module.exports = (()=> {
     });
 
     // [lib] watch
-    lib.watch = (platforms)=> new Promise((callback)=> {
-        lib.build(JSON.parse(JSON.stringify(platforms))).then(()=> {
+    lib.watch = (platforms) => new Promise((callback) => {
+        lib.build(JSON.parse(JSON.stringify(platforms))).then(() => {
             let SRC_WATCH = [];
             let CTRL_WATCH = [];
             let PLATFORM_ROOT = path.resolve(PLUGIN_ROOT, 'platform');
@@ -423,7 +424,13 @@ module.exports = (()=> {
                 platforms = fs.readdirSync(PLATFORM_ROOT);
 
             for (let i = 0; i < platforms.length; i++) {
-                if (fs.lstatSync(path.resolve(PLATFORM_ROOT, platforms[i])).isDirectory()) {
+                if (platforms[i] === 'dist') {
+                    let compilerFn = require('./libs/compiler');
+                    SRC_WATCH.push({
+                        compiler: compilerFn,
+                        dest: path.resolve('.', 'www')
+                    });
+                } else if (fs.lstatSync(path.resolve(PLATFORM_ROOT, platforms[i])).isDirectory()) {
                     let compilerFn = require('./libs/compiler');
                     if (plugins.platform[platforms[i]].compile && typeof plugins.platform[platforms[i]].compile == 'object')
                         compilerFn = plugins.platform[platforms[i]].compile;
@@ -432,6 +439,7 @@ module.exports = (()=> {
                         compiler: compilerFn,
                         dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'www')
                     });
+
                     CTRL_WATCH.push({
                         compiler: null,
                         dest: path.resolve(PLATFORM_ROOT, platforms[i], 'app', 'controller')
@@ -446,15 +454,7 @@ module.exports = (()=> {
         });
     });
 
-    // TODO [lib] struct
-    lib.struct = ()=> new Promise((callback)=> {
-    });
-
-    // TODO [lib] template
-    lib.template = ()=> new Promise((callback)=> {
-    });
-
-    lib.v = lib['-v'] = lib.version = ()=> new Promise((callback)=> {
+    lib.v = lib['-v'] = lib.version = () => new Promise(() => {
         let version = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8')).version;
         console.log(`v${version}`);
     });
@@ -462,7 +462,7 @@ module.exports = (()=> {
     // [lib] bind platform function
     for (let platform in plugins.platform)
         if (!lib[platform])
-            lib[platform] = (args) => new Promise((next)=> {
+            lib[platform] = (args) => new Promise((next) => {
                 let fn = args.splice(0, 1);
                 args.unshift(platform);
                 platformFunction(fn, args).then(next);

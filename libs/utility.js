@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (()=> {
+module.exports = (() => {
     let spawn = require('child_process').spawn;
     // if windows
     if (process.platform == 'win32')
@@ -20,7 +20,7 @@ module.exports = (()=> {
     let app = {};
 
     // [lib] terminal
-    app.terminal = (cmd, args, opts, mute)=> new Promise((callback)=> {
+    app.terminal = (cmd, args, opts, mute) => new Promise((callback) => {
         if (!opts) opts = {};
         let term = spawn(cmd, args, opts);
 
@@ -37,14 +37,14 @@ module.exports = (()=> {
         });
     });
 
-    app.npm = (srcDir, modules, mute)=> new Promise((callback)=> {
+    app.npm = (srcDir, modules, mute) => new Promise((callback) => {
         if (!modules) modules = [];
         modules.unshift('--save');
         modules.unshift('install');
         app.terminal('npm', modules, {cwd: srcDir}, mute).then(callback);
     });
 
-    app.bower = (srcDir, modules, mute)=> new Promise((callback)=> {
+    app.bower = (srcDir, modules, mute) => new Promise((callback) => {
         if (!modules) modules = [];
         modules.unshift('--save');
         modules.unshift('install');
@@ -52,7 +52,7 @@ module.exports = (()=> {
     });
 
     // [lib] find plugins
-    let plugins = (PLUGIN_NAME, PLUGIN_SRC, PLUGIN_REPO_NAME)=> new Promise((callback)=> {
+    let plugins = (PLUGIN_NAME, PLUGIN_SRC, PLUGIN_REPO_NAME) => new Promise((callback) => {
         let TMP_FILE = path.resolve(TMP_DIR, new Date().getTime() + '');
         let PACAKGE_FILE = path.resolve(TMP_FILE, 'package.json');
 
@@ -71,7 +71,7 @@ module.exports = (()=> {
         }
 
         // find repo. and copy to tmp
-        let finder = ()=> new Promise((next)=> {
+        let finder = () => new Promise((next) => {
             // [TODO] PLUGIN_SRC pattern check: 1. version (eg. 0.0.1), 2. exists file system, 3. git url
             // [TODO] if version, PLUGIN_SRC = PLUGIN_REPO_NAME#PLUGIN_SRC
 
@@ -95,7 +95,7 @@ module.exports = (()=> {
         });
 
         // installation
-        let installation = ()=> new Promise((next)=> {
+        let installation = () => new Promise((next) => {
             let status = {error: true, data: ''};
             if (fs.existsSync(path.resolve(TMP_FILE)) === false) {
                 status.data = 'DOWNLOAD ERROR';
@@ -153,7 +153,7 @@ module.exports = (()=> {
                 }
             } // TODO mvc, struct
 
-            app.npm(DEST_FILE, null, null).then(()=> {
+            app.npm(DEST_FILE, null, null).then(() => {
                 delete status.error;
                 status.lwot = PACKAGE_INFO;
                 status.uri = URI;
@@ -162,8 +162,8 @@ module.exports = (()=> {
         });
 
         finder()
-            .then(()=> installation())
-            .then((status)=> {
+            .then(() => installation())
+            .then((status) => {
                 callback(status);
             });
     });
@@ -197,6 +197,8 @@ module.exports = (()=> {
 
     // [lib] createJadeIncludeRelationTree : Generation of Jade Files Include Relation Tree.
     app.createJadeIncludeRelationTree = (SOURCE_ROOT) => {
+        if (!fs.existsSync(path.dirname(INCLUDE_TREE_PATH)))
+            fsext.mkdirpSync(path.dirname(INCLUDE_TREE_PATH));
         if (fs.existsSync(INCLUDE_TREE_PATH))
             fs.unlinkSync(INCLUDE_TREE_PATH);
 
@@ -270,13 +272,13 @@ module.exports = (()=> {
 
     app.plugins = {};
 
-    app.plugins.auto = (source, name)=> plugins('auto', source, name);
+    app.plugins.auto = (source, name) => plugins('auto', source, name);
 
-    app.plugins.platform = (source, name)=> plugins('platform', source, name);
+    app.plugins.platform = (source, name) => plugins('platform', source, name);
 
-    app.plugins.struct = (source, name)=> plugins('struct', source, name);
+    app.plugins.struct = (source, name) => plugins('struct', source, name);
 
-    app.plugins.mvc = (source, name)=> plugins('mvc', source, name);
+    app.plugins.mvc = (source, name) => plugins('mvc', source, name);
 
     return app;
 })();

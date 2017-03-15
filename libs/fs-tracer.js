@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (()=> {
+module.exports = (() => {
     const fs = require('fs');
     const path = require('path');
     const fsext = require('fs-extra');
@@ -13,7 +13,7 @@ module.exports = (()=> {
     let app = {};
 
     // delete path
-    app.deletePath = (deletePath, exception)=> {
+    app.deletePath = (deletePath, exception) => {
         deletePath = path.resolve(deletePath);
         if (fs.existsSync(deletePath) === false) return;
 
@@ -44,7 +44,7 @@ module.exports = (()=> {
     };
 
     // find files
-    app.findFiles = (rootPath, result, depth)=> {
+    app.findFiles = (rootPath, result, depth) => {
         if (!depth) depth = 0;
         if (!result) result = [];
         if (fs.existsSync(rootPath) === false) return result;
@@ -66,7 +66,7 @@ module.exports = (()=> {
     };
 
     // compile
-    app.compile = (compiler, rootPath, compilePath, noLog, onlyError)=> new Promise((callback)=> {
+    app.compile = (compiler, rootPath, compilePath, noLog, onlyError) => new Promise((callback) => {
         if (!compiler) compiler = {};
 
         rootPath = path.resolve(rootPath);
@@ -80,9 +80,25 @@ module.exports = (()=> {
             files.push(rootPath);
 
         // compile
-        let compile = ()=> {
+        let compile = () => {
             let file = files[fi++];
             if (!file) return callback();
+
+            let ignore = (ig) => {
+                if (!ig) return false;
+                if (ig.indexOf('*') !== -1)
+                    ig = ig.replace('.', '\\.').replace('*', '.*');
+
+                let re = new RegExp(ig);
+                return re.test(file);
+            };
+
+            let ignores = [];
+            if (fs.existsSync(path.resolve('.', '.lwotignore')))
+                ignores = fs.readFileSync(path.resolve('.', '.lwotignore'), 'utf-8').split('\n');
+            for (let i = 0; i < ignores.length; i++)
+                if (ignore(ignores[i]))
+                    return compile();
 
             let fileExists = fs.existsSync(file);
             let extension = path.extname(file);
@@ -102,7 +118,7 @@ module.exports = (()=> {
 
             // if compiler exists
             if (_compiler) {
-                _compiler(file).then((result)=> {
+                _compiler(file).then((result) => {
                     dest = path.resolve(dest, '..', basename + result.ext);
 
                     if (result.status === false) { // if compile failed
@@ -188,10 +204,10 @@ module.exports = (()=> {
     };
 
     // watch
-    app.watch = (rootPath, compilePaths)=> {
+    app.watch = (rootPath, compilePaths) => {
         let watch = require('node-watch');
 
-        watch(rootPath, (filename)=> {
+        watch(rootPath, (filename) => {
             filename = renewalJadeIncludeTree(filename);
 
             let fileLoop = (compilePath, idx, resolve) => {
@@ -203,32 +219,32 @@ module.exports = (()=> {
                 let dest = filename[idx].replace(rootPath, compilePath.dest);
                 let comp = compilePath.compiler;
 
-                let isController = path.basename(rootPath) === 'controller' ? true : false;
+                let isController = path.basename(rootPath) === 'controller';
 
                 if (isController) {
                     let src = filename[idx].replace(rootPath, '').split('/')[1];
                     let platform = path.basename(path.resolve(compilePath.dest, '..', '..'));
 
                     if (src != platform) {
-                        callback();
+                        fileLoop(compilePath, idx + 1, resolve);
                         return;
                     }
 
                     dest = filename[idx].replace(path.resolve(rootPath, platform), compilePath.dest);
                 }
 
-                app.compile(comp, filename[idx], dest).then(()=> {
+                app.compile(comp, filename[idx], dest).then(() => {
                     fileLoop(compilePath, idx + 1, resolve);
                 });
             };
 
-            let cpi = (cidx)=> {
+            let cpi = (cidx) => {
                 if (!compilePaths[cidx])
                     return;
 
                 let compilePath = compilePaths[cidx];
 
-                fileLoop(compilePath, 0, ()=> {
+                fileLoop(compilePath, 0, () => {
                     cpi(cidx + 1);
                 });
             };

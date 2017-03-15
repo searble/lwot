@@ -1,6 +1,6 @@
 {
   "name": "lwot",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Leave work on time!",
   "main": "app.js",
   "scripts": {

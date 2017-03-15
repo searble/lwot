@@ -9,8 +9,10 @@ var app = require('./app');
 var processPath = process.cwd();
 var commands = process.argv.splice(2);
 
+var exception = ['create', 'help', '-v', 'version', 'v'];
+
 // check lwot project
-if (commands[0] && commands[0] != 'create' && commands[0] != 'help') {
+if (commands[0] && !exception.includes(commands[0])) {
     if (fs.existsSync(path.join(processPath, 'lwot.json')) == false) {
         console.log(clc.red('[error]'), '"' + path.join(processPath, 'lwot.json') + '"', 'is not exsits in this directory.');
         return;
@@ -48,7 +50,7 @@ else helpFile = helpFile + '.md';
 
 var args = commands.splice(lastIndex + 1);
 if (typeof fn === 'function') {
-    fn(args).then((msg)=> {
+    fn(args).then((msg) => {
         if (msg == 'help') {
             var marked = require('marked');
             var TerminalRenderer = require('marked-terminal');
