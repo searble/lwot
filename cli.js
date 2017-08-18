@@ -13,7 +13,7 @@ var exception = ['create', 'help', '-v', 'version', 'v'];
 
 // check lwot project
 if (commands[0] && !exception.includes(commands[0])) {
-    if (commands[0] == 'build' || commands[0] == 'watch') {
+    if (( commands[0] == 'build' || commands[0] == 'watch' ) && fs.existsSync(path.join(processPath, 'lwot.json')) == false) {
         if(!fs.existsSync('./src')) {
             console.log('"src" folder not exists in this path.')
             return;
