@@ -13,7 +13,10 @@ var exception = ['create', 'help', '-v', 'version', 'v'];
 
 // check lwot project
 if (commands[0] && !exception.includes(commands[0])) {
-    if (fs.existsSync(path.join(processPath, 'lwot.json')) == false) {
+    if (commands[0] == 'build' || commands[0] == 'watch') {
+        app[commands[0]](['dist']);
+        return;
+    } else if (fs.existsSync(path.join(processPath, 'lwot.json')) == false) {
         console.log(clc.red('[error]'), '"' + path.join(processPath, 'lwot.json') + '"', 'is not exsits in this directory.');
         return;
     }
